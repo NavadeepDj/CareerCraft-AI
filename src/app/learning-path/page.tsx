@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, GraduationCap, Lightbulb, BookOpen, ExternalLink } from 'lucide-react';
-import LoadingSpinner from '@/components/loading-spinner';
+import LoadingSpinner from '@/components/loading-spinner'; // Updated import
 import { getLearningPath, type Course } from '@/services/learning-path'; // Import the service
 import { Badge } from '@/components/ui/badge';
 // Removed useAuth import
@@ -67,7 +67,7 @@ export default function LearningPathPage() {
 
         {isLoading ? (
           <div className="flex min-h-[60vh] items-center justify-center">
-            <LoadingSpinner />
+            <LoadingSpinner /> {/* Use the new spinner */}
           </div>
         ) : error ? (
            <div className="text-center text-destructive">{error}</div>

@@ -16,7 +16,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import LoadingSpinner from '@/components/loading-spinner';
+import LoadingSpinner from '@/components/loading-spinner'; // Updated import
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 
@@ -559,7 +559,7 @@ export default function ResumeBuilderPage() {
                  <CardContent className="h-[calc(80vh-65px)] p-0"> {/* Adjusted height calculation */}
                    {isLoadingPreview ? (
                      <div className="flex h-full items-center justify-center bg-secondary">
-                       <LoadingSpinner />
+                       <LoadingSpinner /> {/* Use the new spinner */}
                      </div>
                    ) : previewHtml ? (
                      // The container *inside* which the dangerouslySetInnerHTML is rendered

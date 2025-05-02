@@ -14,7 +14,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { analyzeResume } from '@/ai/flows/resume-analysis'; // Import the AI function
 import { useToast } from "@/hooks/use-toast";
-import LoadingSpinner from './loading-spinner';
+import LoadingSpinner from './loading-spinner'; // Updated import
 
 
 export default function DashboardPage() {
@@ -179,12 +179,13 @@ export default function DashboardPage() {
           </div>
           {fileName && <p className="mt-3 text-center text-sm text-muted-foreground">{fileName}</p>}
            <Button
-            className="mt-6 w-full py-3 text-lg relative overflow-hidden bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 ease-in-out group" // Removed hover:bg-accent
+            className="mt-6 w-full py-3 text-lg relative overflow-hidden bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 ease-in-out group flex items-center justify-center" // Added flex for centering
             onClick={handleSubmit}
             disabled={isAnalyzing || isUploading}
+            style={{ minHeight: '48px' }} // Ensure button has enough height for spinner
            >
                 {isAnalyzing ? (
-                    <LoadingSpinner size="sm" />
+                    <LoadingSpinner className="w-8 h-8" /> // Use new spinner, adjust size if needed
                 ) : (
                     <>
                      {/* Optional: Could re-add a subtle hover effect using primary color if desired */}

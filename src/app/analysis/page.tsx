@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, UploadCloud, FileText, CheckCircle2, XCircle, BarChart, Percent, Star, Users, GraduationCap, ScanText, Lightbulb } from 'lucide-react';
-import LoadingSpinner from '@/components/loading-spinner';
+import LoadingSpinner from '@/components/loading-spinner'; // Updated import if necessary
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 import { analyzeResume, type AnalyzeResumeOutput, type AnalyzeResumeInput } from '@/ai/flows/resume-analysis';
@@ -272,7 +272,7 @@ export default function AnalysisPage() {
             case 'analyzing':
                 return (
                     <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4 text-center">
-                        <LoadingSpinner size="lg" />
+                        <LoadingSpinner /> {/* Use the new spinner */}
                         <p className="text-lg font-semibold text-primary">Analyzing your resume...</p>
                         <p className="text-muted-foreground">This may take a moment.</p>
                     </div>
@@ -290,7 +290,7 @@ export default function AnalysisPage() {
                              </CardHeader>
                              <CardContent className="h-[calc(80vh-65px)] p-0 overflow-auto bg-muted">
                                 {previewContent?.type === 'loading' && (
-                                     <div className="flex h-full items-center justify-center"><LoadingSpinner /></div>
+                                     <div className="flex h-full items-center justify-center"><LoadingSpinner /></div> // Use new spinner
                                 )}
                                  {previewContent?.type === 'error' && (
                                      <div className="p-4 text-red-600">{previewContent.content}</div>

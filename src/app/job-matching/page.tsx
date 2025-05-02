@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Briefcase, MapPin, UploadCloud, Search, FileUp } from 'lucide-react';
-import LoadingSpinner from '@/components/loading-spinner';
+import LoadingSpinner from '@/components/loading-spinner'; // Updated import
 import { getMatchingJobs, type Job } from '@/services/job-matching'; // Import the service
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -181,7 +181,7 @@ export default function JobMatchingPage() {
           <CardContent className="min-h-[40vh] flex flex-col"> {/* Ensure minimum height */}
              {isLoading ? (
                 <div className="flex flex-grow items-center justify-center"> {/* Centering container */}
-                  <LoadingSpinner />
+                  <LoadingSpinner /> {/* Use the new spinner */}
                 </div>
             ) : error ? (
               <div className="flex flex-grow items-center justify-center text-center text-destructive">
