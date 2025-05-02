@@ -60,11 +60,22 @@ export default function LoginPage() {
           <form onSubmit={handleEmailSignIn} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="m@example.com" required />
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+                defaultValue="123@gmail.com"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" required />
+              <Input
+                id="password"
+                type="password"
+                required
+                defaultValue="123456"
+              />
             </div>
             <Button type="submit" className="w-full py-6 text-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-200">
               Sign In / Sign Up
