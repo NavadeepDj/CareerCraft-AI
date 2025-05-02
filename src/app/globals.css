@@ -99,7 +99,7 @@ body {
 .box1,
 .box2,
 .box3 {
-  border: 16px solid hsl(var(--secondary)); /* Use secondary color for boxes */
+  border: 16px solid hsl(var(--primary)); /* Use primary color (black) for boxes */
   box-sizing: border-box;
   position: absolute;
   display: block;
