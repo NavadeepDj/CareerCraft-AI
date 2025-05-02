@@ -440,7 +440,7 @@ export default function ResumeBuilderPage() {
                                 alt={`${template.name} thumbnail`}
                                 width={300}
                                 height={400}
-                                className="w-full object-cover aspect-[3/4] filter grayscale" // Added grayscale filter
+                                className="w-full object-cover aspect-[3/4]" // Removed grayscale filter
                                 data-ai-hint="resume template preview"
                                 priority // Load thumbnails faster
                                 unoptimized // Avoid Next.js image optimization for external URLs like picsum
