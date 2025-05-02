@@ -12,8 +12,9 @@ const Progress = React.forwardRef<
   <ProgressPrimitive.Root
     ref={ref}
     className={cn(
+      // Default height is h-4, allow override via className
       "relative h-4 w-full overflow-hidden rounded-full bg-secondary",
-      className
+      className // Apply className here to allow overrides (e.g., h-2, h-3)
     )}
     {...props}
   >
