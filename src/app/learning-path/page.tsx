@@ -46,7 +46,7 @@ export default function LearningPathPage() {
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
       <header className="mb-8 flex items-center justify-between border-b pb-4">
         <Link href="/" passHref>
-          <Button variant="outline" size="icon" className="hover:bg-accent hover:text-accent-foreground">
+          <Button variant="outline" size="icon" className="hover:bg-primary/10 hover:text-primary"> {/* Updated hover */}
             <ArrowLeft className="h-5 w-5" />
             <span className="sr-only">Back to Dashboard</span>
           </Button>
@@ -57,7 +57,7 @@ export default function LearningPathPage() {
 
       <main>
          <div className="mb-6 rounded-md border bg-secondary p-4 text-center">
-            <Lightbulb className="inline-block h-6 w-6 text-accent mb-2" />
+            <Lightbulb className="inline-block h-6 w-6 text-primary mb-2" /> {/* Changed icon color */}
             <p className="text-sm text-secondary-foreground">
               Based on your profile and target job roles, here are suggested learning resources to bridge skill gaps in: <br/>
               <strong>{skillsNeeded.join(', ')}</strong>.
@@ -77,7 +77,7 @@ export default function LearningPathPage() {
               <Card key={course.id} className="flex flex-col justify-between shadow-md transition-shadow hover:shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                     <BookOpen className="h-5 w-5 text-accent flex-shrink-0" />
+                     <BookOpen className="h-5 w-5 text-primary flex-shrink-0" /> {/* Changed icon color */}
                      {course.title}
                   </CardTitle>
                   <CardDescription>Provider: {course.provider}</CardDescription>
@@ -92,7 +92,7 @@ export default function LearningPathPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                   <Button variant="link" asChild className="w-full justify-start p-0 h-auto text-accent hover:underline">
+                   <Button variant="link" asChild className="w-full justify-start p-0 h-auto text-primary hover:underline"> {/* Changed link color to primary */}
                      <a href={course.url} target="_blank" rel="noopener noreferrer">
                        Go to Course <ExternalLink className="ml-1 h-4 w-4" />
                      </a>

@@ -10,55 +10,56 @@ export default {
   theme: {
   	extend: {
   		colors: {
-  			background: 'hsl(var(--background))',
-  			foreground: 'hsl(var(--foreground))',
+            // Updated based on globals.css B&W theme
+  			background: 'hsl(var(--background))', // White / Near Black
+  			foreground: 'hsl(var(--foreground))', // Near Black / White
   			card: {
-  				DEFAULT: 'hsl(var(--card))',
-  				foreground: 'hsl(var(--card-foreground))'
+  				DEFAULT: 'hsl(var(--card))', // White / Near Black
+  				foreground: 'hsl(var(--card-foreground))' // Near Black / White
   			},
   			popover: {
-  				DEFAULT: 'hsl(var(--popover))',
-  				foreground: 'hsl(var(--popover-foreground))'
+  				DEFAULT: 'hsl(var(--popover))', // White / Near Black
+  				foreground: 'hsl(var(--popover-foreground))' // Near Black / White
   			},
   			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
+  				DEFAULT: 'hsl(var(--primary))', // Black / White
+  				foreground: 'hsl(var(--primary-foreground))' // White / Black
   			},
   			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
+  				DEFAULT: 'hsl(var(--secondary))', // Light Gray / Dark Gray
+  				foreground: 'hsl(var(--secondary-foreground))' // Black / White
   			},
   			muted: {
-  				DEFAULT: 'hsl(var(--muted))',
-  				foreground: 'hsl(var(--muted-foreground))'
+  				DEFAULT: 'hsl(var(--muted))', // Lighter Gray / Dark Gray
+  				foreground: 'hsl(var(--muted-foreground))' // Mid Gray / Lighter Gray
   			},
   			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
-  				foreground: 'hsl(var(--accent-foreground))'
+  				DEFAULT: 'hsl(var(--accent))', // Black / White
+  				foreground: 'hsl(var(--accent-foreground))' // White / Black
   			},
   			destructive: {
-  				DEFAULT: 'hsl(var(--destructive))',
-  				foreground: 'hsl(var(--destructive-foreground))'
+  				DEFAULT: 'hsl(var(--destructive))', // Black / White
+  				foreground: 'hsl(var(--destructive-foreground))' // White / Black
   			},
-  			border: 'hsl(var(--border))',
-  			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
+  			border: 'hsl(var(--border))', // Gray / Dark Gray
+  			input: 'hsl(var(--input))', // Gray / Dark Gray
+  			ring: 'hsl(var(--ring))', // Black / White
   			chart: {
-  				'1': 'hsl(var(--chart-1))',
-  				'2': 'hsl(var(--chart-2))',
-  				'3': 'hsl(var(--chart-3))',
-  				'4': 'hsl(var(--chart-4))',
-  				'5': 'hsl(var(--chart-5))'
+  				'1': 'hsl(var(--chart-1))', // Black / White
+  				'2': 'hsl(var(--chart-2))', // Dark Gray / Very Light Gray
+  				'3': 'hsl(var(--chart-3))', // Mid Gray / Light Gray
+  				'4': 'hsl(var(--chart-4))', // Light Gray / Mid Gray
+  				'5': 'hsl(var(--chart-5))' // Very Light Gray / Dark Gray
   			},
   			sidebar: {
-  				DEFAULT: 'hsl(var(--sidebar-background))',
-  				foreground: 'hsl(var(--sidebar-foreground))',
-  				primary: 'hsl(var(--sidebar-primary))',
-  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-  				accent: 'hsl(var(--sidebar-accent))',
-  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-  				border: 'hsl(var(--sidebar-border))',
-  				ring: 'hsl(var(--sidebar-ring))'
+  				DEFAULT: 'hsl(var(--sidebar-background))', // Slightly off-white / Near Black
+  				foreground: 'hsl(var(--sidebar-foreground))', // Near Black / White
+  				primary: 'hsl(var(--sidebar-primary))', // Black / White
+  				'primary-foreground': 'hsl(var(--sidebar-primary-foreground))', // White / Black
+  				accent: 'hsl(var(--sidebar-accent))', // Light Gray / Dark Gray
+  				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))', // Near Black / White
+  				border: 'hsl(var(--sidebar-border))', // Gray / Dark Gray
+  				ring: 'hsl(var(--sidebar-ring))' // Black / White
   			}
   		},
   		borderRadius: {

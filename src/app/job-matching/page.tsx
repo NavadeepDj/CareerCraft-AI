@@ -45,7 +45,7 @@ export default function JobMatchingPage() {
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
       <header className="mb-8 flex items-center justify-between border-b pb-4">
         <Link href="/" passHref>
-          <Button variant="outline" size="icon" className="hover:bg-accent hover:text-accent-foreground">
+          <Button variant="outline" size="icon" className="hover:bg-primary/10 hover:text-primary"> {/* Updated hover */}
             <ArrowLeft className="h-5 w-5" />
             <span className="sr-only">Back to Dashboard</span>
           </Button>
@@ -70,7 +70,7 @@ export default function JobMatchingPage() {
               <Card key={job.id} className="flex flex-col justify-between shadow-md transition-shadow hover:shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                     <Briefcase className="h-5 w-5 text-accent flex-shrink-0" />
+                     <Briefcase className="h-5 w-5 text-primary flex-shrink-0" /> {/* Changed icon color */}
                      <span className="truncate">{job.title}</span>
                   </CardTitle>
                   <CardDescription>{job.company}</CardDescription>

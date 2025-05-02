@@ -61,16 +61,16 @@ export default function DashboardPage() {
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    event.currentTarget.classList.add('border-accent'); // Highlight on drag over
+    event.currentTarget.classList.add('border-primary'); // Highlight on drag over with primary color
   };
 
   const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
-    event.currentTarget.classList.remove('border-accent');
+    event.currentTarget.classList.remove('border-primary');
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    event.currentTarget.classList.remove('border-accent');
+    event.currentTarget.classList.remove('border-primary');
     const file = event.dataTransfer.files?.[0];
     if (file) {
         // Validate file type and size here as well
@@ -160,7 +160,7 @@ export default function DashboardPage() {
         {/* Resume Upload Section */}
         <div className="mb-8 mx-auto max-w-2xl">
           <div
-            className="relative flex h-48 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-input bg-secondary p-6 text-center shadow-sm transition-all hover:border-accent hover:shadow-md"
+            className="relative flex h-48 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-input bg-secondary p-6 text-center shadow-sm transition-all hover:border-primary hover:shadow-md" // Changed hover border to primary
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -179,7 +179,7 @@ export default function DashboardPage() {
           </div>
           {fileName && <p className="mt-3 text-center text-sm text-muted-foreground">{fileName}</p>}
            <Button
-            className="mt-6 w-full py-3 text-lg relative overflow-hidden bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 ease-in-out group"
+            className="mt-6 w-full py-3 text-lg relative overflow-hidden bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300 ease-in-out group" // Removed hover:bg-accent
             onClick={handleSubmit}
             disabled={isAnalyzing || isUploading}
            >
@@ -187,7 +187,8 @@ export default function DashboardPage() {
                     <LoadingSpinner size="sm" />
                 ) : (
                     <>
-                     <span className="absolute left-0 top-0 h-0 w-0 rounded-full bg-accent opacity-50 transition-all duration-500 ease-out group-hover:h-60 group-hover:w-60"></span>
+                     {/* Optional: Could re-add a subtle hover effect using primary color if desired */}
+                     {/* <span className="absolute left-0 top-0 h-0 w-0 rounded-full bg-primary/20 opacity-50 transition-all duration-500 ease-out group-hover:h-60 group-hover:w-60"></span> */}
                      <span className="relative z-10">Submit Resume for Analysis</span>
                     </>
                 )}
@@ -200,7 +201,7 @@ export default function DashboardPage() {
           <Link href="/analysis" passHref>
             <Card className="h-full transform cursor-pointer transition-transform duration-300 hover:scale-105 hover:shadow-xl">
               <CardHeader className="flex flex-col items-center text-center">
-                <FileText className="mb-3 h-12 w-12 text-accent" />
+                <FileText className="mb-3 h-12 w-12 text-primary" /> {/* Changed icon color to primary */}
                 <CardTitle>AI Resume Analysis</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
@@ -212,7 +213,7 @@ export default function DashboardPage() {
           <Link href="/job-matching" passHref>
             <Card className="h-full transform cursor-pointer transition-transform duration-300 hover:scale-105 hover:shadow-xl">
               <CardHeader className="flex flex-col items-center text-center">
-                <Search className="mb-3 h-12 w-12 text-accent" />
+                <Search className="mb-3 h-12 w-12 text-primary" /> {/* Changed icon color to primary */}
                 <CardTitle>Intelligent Job Matching</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
@@ -224,7 +225,7 @@ export default function DashboardPage() {
           <Link href="/learning-path" passHref>
             <Card className="h-full transform cursor-pointer transition-transform duration-300 hover:scale-105 hover:shadow-xl">
               <CardHeader className="flex flex-col items-center text-center">
-                <GraduationCap className="mb-3 h-12 w-12 text-accent" />
+                <GraduationCap className="mb-3 h-12 w-12 text-primary" /> {/* Changed icon color to primary */}
                 <CardTitle>Customized Learning Paths</CardTitle>
               </CardHeader>
               <CardContent className="text-center">
@@ -236,7 +237,7 @@ export default function DashboardPage() {
           <Link href="/resume-builder" passHref>
             <Card className="h-full transform cursor-pointer transition-transform duration-300 hover:scale-105 hover:shadow-xl">
               <CardHeader className="flex flex-col items-center text-center">
-                 <UserSquare className="mb-3 h-12 w-12 text-accent" />
+                 <UserSquare className="mb-3 h-12 w-12 text-primary" /> {/* Changed icon color to primary */}
                 <CardTitle>Detailed Resume Creation</CardTitle>
               </CardHeader>
               <CardContent className="text-center">

@@ -8,73 +8,75 @@ body {
 
 @layer base {
   :root {
+    /* Light Theme - Black & White */
     --background: 0 0% 100%; /* White */
     --foreground: 0 0% 3.9%; /* Near Black */
     --card: 0 0% 100%; /* White */
     --card-foreground: 0 0% 3.9%; /* Near Black */
     --popover: 0 0% 100%; /* White */
     --popover-foreground: 0 0% 3.9%; /* Near Black */
-    --primary: 0 0% 9%; /* Default Dark for primary buttons like user example */
-    --primary-foreground: 0 0% 98%; /* White */
-    --secondary: 0 0% 94.1%; /* Light Gray */
-    --secondary-foreground: 0 0% 9%; /* Near Black */
-    --muted: 0 0% 94.1%; /* Light Gray */
-    --muted-foreground: 0 0% 45.1%; /* Default Muted Gray */
-    --accent: 180 100% 25.1%; /* Teal */
-    --accent-foreground: 0 0% 98%; /* White */
-    --destructive: 0 84.2% 60.2%; /* Default Red */
-    --destructive-foreground: 0 0% 98%; /* White */
-    --border: 0 0% 89.8%; /* Default Border Gray */
-    --input: 0 0% 89.8%; /* Default Input Border Gray */
-    --ring: 180 100% 25.1%; /* Teal for focus rings */
-    --chart-1: 180 100% 25.1%; /* Teal */
-    --chart-2: 180 70% 35%; /* Lighter Teal */
-    --chart-3: 180 50% 45%; /* Even Lighter Teal */
-    --chart-4: 0 0% 45.1%; /* Default Muted Gray */
-    --chart-5: 0 0% 63.9%; /* Lighter Gray */
+    --primary: 0 0% 9%; /* Black */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 0 0% 96.1%; /* Light Gray */
+    --secondary-foreground: 0 0% 9%; /* Black */
+    --muted: 0 0% 94.1%; /* Lighter Gray */
+    --muted-foreground: 0 0% 45.1%; /* Mid Gray */
+    --accent: 0 0% 9%; /* Black (Used where accent was Teal) */
+    --accent-foreground: 0 0% 100%; /* White */
+    --destructive: 0 0% 9%; /* Black (Used where destructive was Red) */
+    --destructive-foreground: 0 0% 100%; /* White */
+    --border: 0 0% 89.8%; /* Gray */
+    --input: 0 0% 89.8%; /* Gray */
+    --ring: 0 0% 9%; /* Black (Used for focus rings) */
+    --chart-1: 0 0% 9%; /* Black */
+    --chart-2: 0 0% 25%; /* Dark Gray */
+    --chart-3: 0 0% 45%; /* Mid Gray */
+    --chart-4: 0 0% 65%; /* Light Gray */
+    --chart-5: 0 0% 85%; /* Very Light Gray */
     --radius: 0.5rem;
-    --sidebar-background: 0 0% 98%; /* Slightly off-white for sidebar */
+    --sidebar-background: 0 0% 98%; /* Slightly off-white */
     --sidebar-foreground: 0 0% 9%; /* Near Black */
-    --sidebar-primary: 180 100% 25.1%; /* Teal */
-    --sidebar-primary-foreground: 0 0% 98%; /* White */
+    --sidebar-primary: 0 0% 9%; /* Black */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
     --sidebar-accent: 0 0% 94.1%; /* Light Gray */
     --sidebar-accent-foreground: 0 0% 9%; /* Near Black */
-    --sidebar-border: 0 0% 89.8%; /* Default Border Gray */
-    --sidebar-ring: 180 100% 25.1%; /* Teal */
+    --sidebar-border: 0 0% 89.8%; /* Gray */
+    --sidebar-ring: 0 0% 9%; /* Black */
   }
   .dark {
+    /* Dark Theme - Black & White (Inverted) */
     --background: 0 0% 3.9%; /* Near Black */
-    --foreground: 0 0% 98%; /* White */
+    --foreground: 0 0% 100%; /* White */
     --card: 0 0% 3.9%; /* Near Black */
-    --card-foreground: 0 0% 98%; /* White */
+    --card-foreground: 0 0% 100%; /* White */
     --popover: 0 0% 3.9%; /* Near Black */
-    --popover-foreground: 0 0% 98%; /* White */
+    --popover-foreground: 0 0% 100%; /* White */
     --primary: 0 0% 98%; /* White */
-    --primary-foreground: 0 0% 9%; /* Near Black */
+    --primary-foreground: 0 0% 9%; /* Black */
     --secondary: 0 0% 14.9%; /* Dark Gray */
     --secondary-foreground: 0 0% 98%; /* White */
     --muted: 0 0% 14.9%; /* Dark Gray */
     --muted-foreground: 0 0% 63.9%; /* Lighter Gray */
-    --accent: 180 100% 25.1%; /* Teal */
-    --accent-foreground: 0 0% 98%; /* White */
-    --destructive: 0 62.8% 30.6%; /* Darker Red */
-    --destructive-foreground: 0 0% 98%; /* White */
+    --accent: 0 0% 98%; /* White (Used where accent was Teal) */
+    --accent-foreground: 0 0% 9%; /* Black */
+    --destructive: 0 0% 98%; /* White (Used where destructive was Red) */
+    --destructive-foreground: 0 0% 9%; /* Black */
     --border: 0 0% 14.9%; /* Dark Gray */
     --input: 0 0% 14.9%; /* Dark Gray */
-    --ring: 180 100% 25.1%; /* Teal */
-    --chart-1: 180 100% 25.1%; /* Teal */
-    --chart-2: 180 70% 35%; /* Lighter Teal */
-    --chart-3: 180 50% 45%; /* Even Lighter Teal */
-    --chart-4: 0 0% 63.9%; /* Lighter Gray */
-    --chart-5: 0 0% 45.1%; /* Default Muted Gray */
+    --ring: 0 0% 98%; /* White (Used for focus rings) */
+    --chart-1: 0 0% 98%; /* White */
+    --chart-2: 0 0% 85%; /* Very Light Gray */
+    --chart-3: 0 0% 65%; /* Light Gray */
+    --chart-4: 0 0% 45%; /* Mid Gray */
+    --chart-5: 0 0% 25%; /* Dark Gray */
     --sidebar-background: 0 0% 9%; /* Near Black */
     --sidebar-foreground: 0 0% 98%; /* White */
-    --sidebar-primary: 180 100% 25.1%; /* Teal */
-    --sidebar-primary-foreground: 0 0% 98%; /* White */
+    --sidebar-primary: 0 0% 98%; /* White */
+    --sidebar-primary-foreground: 0 0% 9%; /* Black */
     --sidebar-accent: 0 0% 14.9%; /* Dark Gray */
     --sidebar-accent-foreground: 0 0% 98%; /* White */
     --sidebar-border: 0 0% 14.9%; /* Dark Gray */
-    --sidebar-ring: 180 100% 25.1%; /* Teal */
+    --sidebar-ring: 0 0% 98%; /* White */
   }
 }
 
@@ -363,7 +365,7 @@ body {
 }
 
 .document-preview .prose a {
-  color: hsl(var(--accent));
+  color: hsl(var(--primary)); /* Use primary instead of accent */
   text-decoration: underline;
 }
 .document-preview .prose strong {

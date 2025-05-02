@@ -43,7 +43,7 @@ export default function AnalysisPage() {
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
       <header className="mb-8 flex items-center justify-between border-b pb-4">
         <Link href="/" passHref>
-          <Button variant="outline" size="icon" className="hover:bg-accent hover:text-accent-foreground">
+          <Button variant="outline" size="icon" className="hover:bg-primary/10 hover:text-primary"> {/* Updated hover */}
             <ArrowLeft className="h-5 w-5" />
             <span className="sr-only">Back to Dashboard</span>
           </Button>
@@ -61,7 +61,7 @@ export default function AnalysisPage() {
           <Card className="mx-auto max-w-3xl shadow-lg">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-xl md:text-2xl">
-                <BarChart className="h-6 w-6 text-accent" />
+                <BarChart className="h-6 w-6 text-primary" /> {/* Changed icon color */}
                 Analysis Results
               </CardTitle>
               <CardDescription>Feedback based on your uploaded resume.</CardDescription>
@@ -75,11 +75,11 @@ export default function AnalysisPage() {
                 <div className="flex items-center gap-4">
                    <div className="w-full bg-secondary rounded-full h-4">
                      <div
-                        className="bg-accent h-4 rounded-full transition-all duration-500 ease-out"
+                        className="bg-primary h-4 rounded-full transition-all duration-500 ease-out" // Changed progress bar color to primary
                         style={{ width: `${analysisResult.matchScore}%` }}
                       />
                     </div>
-                   <span className="text-xl font-bold text-accent">{analysisResult.matchScore}%</span>
+                   <span className="text-xl font-bold text-primary">{analysisResult.matchScore}%</span> {/* Changed score color */}
                 </div>
                  <p className="text-sm text-muted-foreground mt-1">How well your resume aligns with a typical role based on its content.</p>
               </div>

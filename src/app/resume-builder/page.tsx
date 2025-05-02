@@ -212,6 +212,7 @@ export default function ResumeBuilderPage() {
 
 
         // Wrap in a container with prose for basic styling - ensure it fills height and scrolls
+        // Changed background to bg-white and text to text-black for explicit black & white preview content
         return `<div class="prose prose-sm max-w-none p-6 text-black bg-white h-full overflow-auto">${processedHtml}</div>`;
     };
 
@@ -389,7 +390,7 @@ export default function ResumeBuilderPage() {
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
       <header className="mb-8 flex items-center justify-between border-b pb-4">
         <Link href="/" passHref>
-          <Button variant="outline" size="icon" className="hover:bg-accent hover:text-accent-foreground">
+          <Button variant="outline" size="icon" className="hover:bg-primary/10 hover:text-primary"> {/* Updated hover */}
             <ArrowLeft className="h-5 w-5" />
             <span className="sr-only">Back to Dashboard</span>
           </Button>
@@ -439,7 +440,7 @@ export default function ResumeBuilderPage() {
                                 alt={`${template.name} thumbnail`}
                                 width={300}
                                 height={400}
-                                className="w-full object-cover aspect-[3/4]"
+                                className="w-full object-cover aspect-[3/4] filter grayscale" // Added grayscale filter
                                 data-ai-hint="resume template preview"
                                 priority // Load thumbnails faster
                                 unoptimized // Avoid Next.js image optimization for external URLs like picsum
@@ -563,10 +564,10 @@ export default function ResumeBuilderPage() {
                    ) : previewHtml ? (
                      // The container *inside* which the dangerouslySetInnerHTML is rendered
                      // handles the scrolling and background.
-                     <div className="h-full w-full overflow-auto bg-gray-100 p-4">
+                     <div className="h-full w-full overflow-auto bg-muted p-4"> {/* Changed background to muted (light gray) */}
                          {/* Render the HTML inside a div that mimics a document page */}
                          <div
-                            className="mx-auto max-w-3xl bg-white p-8 shadow-md document-preview" // Added document-preview class for potential specific styling
+                            className="mx-auto max-w-3xl bg-white p-8 shadow-md document-preview" // Kept preview content white
                             dangerouslySetInnerHTML={{ __html: previewHtml }}
                          />
                      </div>
