@@ -321,3 +321,65 @@ body {
     margin-left: 0px;
   }
 }
+
+/* Apply Tailwind Typography prose styles specifically to the resume preview */
+.document-preview .prose {
+  /* Reset inherited styles if needed, Tailwind prose does a good job */
+  color: hsl(var(--foreground)); /* Ensure text color matches theme foreground */
+  max-width: none; /* Allow it to fill container */
+}
+
+.document-preview .prose h1,
+.document-preview .prose h2,
+.document-preview .prose h3,
+.document-preview .prose h4,
+.document-preview .prose h5,
+.document-preview .prose h6 {
+  color: hsl(var(--primary)); /* Use primary color for headings */
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.document-preview .prose p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.6;
+}
+
+.document-preview .prose ul,
+.document-preview .prose ol {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  padding-left: 1.5em; /* Standard indentation for lists */
+}
+
+.document-preview .prose li {
+  margin-top: 0.25em;
+  margin-bottom: 0.25em;
+}
+
+.document-preview .prose li > p {
+  margin: 0; /* Avoid extra margins inside list items */
+}
+
+.document-preview .prose a {
+  color: hsl(var(--accent));
+  text-decoration: underline;
+}
+.document-preview .prose strong {
+    font-weight: 600; /* Slightly bolder */
+}
+/* Ensure break tags work as expected for line breaks */
+.document-preview .prose br {
+    content: "";
+    display: block;
+    margin-bottom: 0.5em; /* Adjust spacing for <br> if needed */
+}
+
+/* Example of targeting specific injected sections if needed */
+.document-preview .employment-item {
+  /* Styles for employment items */
+}
+.document-preview .education-item {
+  /* Styles for education items */
+}
