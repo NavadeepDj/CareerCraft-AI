@@ -108,7 +108,7 @@ export default function LearningPathPage() {
         )}
       </main>
         <footer className="mt-12 border-t pt-6 text-center text-sm text-muted-foreground">
-         © {new Date().getFullYear()} ResumeAI. All rights reserved.
+         © {new Date().getFullYear()} CareerCraft AI. All rights reserved.
       </footer>
     </div>
   );
