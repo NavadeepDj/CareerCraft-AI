@@ -30,7 +30,7 @@ const AnalyzeResumeInputSchema = z.object({
 });
 export type AnalyzeResumeInput = z.infer<typeof AnalyzeResumeInputSchema>;
 
-// Updated output schema based on the Python code's calculate_ats_score function
+// Output schema based on the Python code's calculate_ats_score function requirements
 const AnalyzeResumeOutputSchema = z.object({
   atsScore: z
     .number()
@@ -58,7 +58,7 @@ const AnalyzeResumeOutputSchema = z.object({
     .describe('The score for formatting and readability (out of 20).'),
   explanation: z
     .string()
-    .describe('Detailed explanation of each score component and suggestions for improvement.'),
+    .describe('Detailed explanation of each score component and actionable suggestions for improvement.'),
 });
 export type AnalyzeResumeOutput = z.infer<typeof AnalyzeResumeOutputSchema>;
 
@@ -77,23 +77,28 @@ export async function analyzeResume(input: AnalyzeResumeInput): Promise<AnalyzeR
 const prompt = ai.definePrompt({
   name: 'analyzeResumePrompt',
   input: {
-    schema: AnalyzeResumeInputSchema, // Use the updated input schema
+    schema: AnalyzeResumeInputSchema,
   },
   output: {
-    schema: AnalyzeResumeOutputSchema, // Use the updated output schema
+    schema: AnalyzeResumeOutputSchema,
   },
-  // Updated prompt based on the Python code's calculate_ats_score function
-  prompt: `You are an expert AI resume analyzer acting as an Applicant Tracking System (ATS). Analyze the following resume against the job description provided. Calculate an ATS score out of 100 and provide a detailed breakdown.
+  // Updated prompt to match the Python calculate_ats_score function
+  prompt: `Analyze the following resume against the job description and calculate an ATS (Applicant Tracking System) score out of 100. Provide a detailed breakdown of the score, including:
+1. Keyword match percentage
+2. Skills alignment
+3. Experience relevance
+4. Education match
+5. Overall formatting and readability
 
-Job Description:
-{{{jobDescription}}}
-
-Resume Content:
+Resume:
 {{#if resumeText}}
 {{{resumeText}}}
 {{else}}
 {{media url=resumeDataUri}}
 {{/if}}
+
+Job Description:
+{{{jobDescription}}}
 
 Provide the score and explanation in the following format strictly adhering to the field descriptions in the output schema:
 ATS Score: [score]/100
@@ -106,7 +111,7 @@ Breakdown:
 5. Formatting and readability: [score]/20
 
 Explanation:
-[Detailed explanation of each score component and actionable suggestions for improvement based *only* on the provided resume and job description. Be specific about keywords, skills, and experiences.]`,
+[Detailed explanation of each component and suggestions for improvement]`,
 });
 
 const analyzeResumeFlow = ai.defineFlow<
@@ -123,12 +128,8 @@ const analyzeResumeFlow = ai.defineFlow<
     if (!output) {
         throw new Error("AI analysis failed to generate a response.");
     }
-    // Basic validation to ensure the score is within range, though schema handles this.
-    if (output.atsScore < 0 || output.atsScore > 100) {
-        console.warn("ATS score out of range, clamping.", output.atsScore);
-        output.atsScore = Math.max(0, Math.min(100, output.atsScore));
-    }
-    // Similarly check breakdown scores
+    // Basic validation/clamping to ensure scores are within range, although schema handles this.
+    output.atsScore = Math.max(0, Math.min(100, output.atsScore));
     output.keywordMatchScore = Math.max(0, Math.min(20, output.keywordMatchScore));
     output.skillsAlignmentScore = Math.max(0, Math.min(20, output.skillsAlignmentScore));
     output.experienceRelevanceScore = Math.max(0, Math.min(20, output.experienceRelevanceScore));
@@ -138,3 +139,4 @@ const analyzeResumeFlow = ai.defineFlow<
     return output;
   }
 );
+
