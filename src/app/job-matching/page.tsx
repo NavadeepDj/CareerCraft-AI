@@ -167,8 +167,8 @@ export default function JobMatchingPage() {
           </CardContent>
           <CardFooter>
             <Button className="w-full" onClick={handleFindMatches} disabled={isLoading || !uploadedFile || !desiredJobRole.trim()}>
-              {isLoading ? <LoadingSpinner size="sm" /> : <Search className="mr-2 h-4 w-4" />}
-              Find Job Matches
+              <Search className="mr-2 h-4 w-4" />
+              {isLoading ? 'Searching...' : 'Find Job Matches'} {/* Changed button text while loading */}
             </Button>
           </CardFooter>
         </Card>
@@ -180,7 +180,7 @@ export default function JobMatchingPage() {
           </CardHeader>
           <CardContent className="min-h-[40vh] flex flex-col"> {/* Ensure minimum height */}
              {isLoading ? (
-                <div className="flex flex-grow items-center justify-center">
+                <div className="flex flex-grow items-center justify-center"> {/* Centering container */}
                   <LoadingSpinner />
                 </div>
             ) : error ? (
