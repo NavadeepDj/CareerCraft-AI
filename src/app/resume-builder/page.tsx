@@ -59,7 +59,7 @@ async function convertDocxToHtml(fileBlob: Blob): Promise<string> {
         const arrayBuffer = await fileBlob.arrayBuffer();
         const mammoth = (window as any).mammoth;
         const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
-        // Basic styling for preview content
+        // Basic styling for preview content - enhanced in loadTemplatePreview
         return `<div class="prose prose-sm max-w-none p-6">${result.value}</div>`;
     } catch (error) {
         console.error("Error converting DOCX to HTML:", error);
@@ -82,28 +82,32 @@ const downloadFile = (filename: string, content: string, mimeType: string) => {
 };
 
 export default function ResumeBuilderPage() {
+    // Initial state matching the screenshot's example data
     const [resumeData, setResumeData] = useState({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-        phone: '(123) 456-7890',
-        address: '123 Main St, Anytown, USA',
-        profile: 'Dedicated Psychologist with vast experience providing patients with innovative treatments to navigate psychological struggles. Committed to serving as a key support through diagnosis, evaluation, and implementation of treatment plans. Adept in collaborating with other related service providers to ensure patients achieve goals effectively.',
-        employmentHistory: `Psychologist at Edmond Counseling Center, Edmond\n04/2017 – 04/2020\n- Conducted thorough neurological assessments prior to treatment.\n- Collaborated with multi-disciplinary teams to effectively coordinate patient care.\n- Studied human behavior and implemented short-term and long-term treatment plans.\n- Utilized empathy and strong attention to detail.\n\nPsychologist at East Way Healthcare Center, Savannah\n06/2014 – 03/2017\n- Provided behavioral health services to patients who experience psychological difficulties.\n- Developed and implemented treatment plans to resolve patient issues and rehabilitation barriers.\n- Conducted thorough psychological assessments.`,
-        education: `Doctor of Psychology, The University of Oklahoma, Norman\n09/2008 – 04/2014`,
-        skills: 'Neurological Assessments, Cognitive Behavioral Therapy, Advanced Research Skills, Psychological Theory',
-        references: `Dr. Gene Randolph from The University of Oklahoma\ngrandolph@oklahoma.edu | 405-332-0808\n\nDr. Michelle Fortunato from East Way Healthcare Center\nfortunato.m@eastwayhealth.com | 405-548-3277\n\nManuel Rocinga from Edmond Counseling\nrocinga@edmondcounsel.com | 405-548-2209`,
-        // Add more fields based on template placeholders like: {{phone}}, {{address}}, {{profile}}, {{employmentHistory}}, {{education}}, {{references}}, {{skillsList}}
+        firstName: 'Tanguturi Venkata',
+        lastName: 'Sujith Gopi',
+        email: 'sujithgopi740@gmail.com',
+        phone: '7989418257',
+        address: 'Nellore, INDIA', // Added based on preview
+        jobTitle: '', // Added new field based on screenshot
+        profile: 'Resourceful and dedicated High School student with excellent analytical skills and a demonstrated commitment to providing great service. Strong organizational abilities with proven successes managing multiple academic projects and volunteering events. Well-rounded and professional team player dedicated to continuing academic pursuits at a collegiate level.', // Updated based on preview
+        employmentHistory: '', // Placeholder, update if needed
+        education: `B.Tech, Kalasalingam university, Krishnan Koil\nSeptember 2022 - December 2026\n\nIntermediate, Narayana JR collagle, Nellore\nNovember 2020 - July 2022`, // Updated based on preview
+        skills: 'Effective Time Management, Ability to work Under Pressure, Communication Skills, Microsoft Office, Leadership', // Updated based on preview
+        references: '', // Placeholder, update if needed
+        hobbies: 'Coding at free time', // Added based on preview
+        languages: 'Telugu\nEnglish', // Added based on preview
+        academicProjects: `Project using C language\nImplemented denomination in ATM code in C.\n\nProject using Python\nParking management system using Python.\n\nB-EEE\nElectric powered Bicycle.` // Added based on preview
     });
-    const [selectedTemplate, setSelectedTemplate] = useState<string>(templates[0].id);
+    const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null); // Start with no template selected
     const [previewHtml, setPreviewHtml] = useState<string>('');
-    const [isLoadingPreview, setIsLoadingPreview] = useState<boolean>(true);
+    const [isLoadingPreview, setIsLoadingPreview] = useState<boolean>(false); // Don't load initially
     const [isClient, setIsClient] = useState(false);
     const [showTemplates, setShowTemplates] = useState(true); // Start by showing templates
 
 
-    const loadTemplatePreview = useCallback(async (templateId: string) => {
-        if (!isClient) return; // Don't run server-side
+    const loadTemplatePreview = useCallback(async (templateId: string | null) => {
+        if (!isClient || !templateId) return; // Don't run server-side or without a template ID
 
         setIsLoadingPreview(true);
         const template = templates.find(t => t.id === templateId);
@@ -129,23 +133,21 @@ export default function ResumeBuilderPage() {
             const blob = await response.blob();
             let html = await convertDocxToHtml(blob);
 
-            // Placeholder replacement logic (enhance as needed)
-            Object.entries(resumeData).forEach(([key, value]) => {
+            // Inject dynamic data into the HTML preview
+             Object.entries(resumeData).forEach(([key, value]) => {
                  const regex = new RegExp(`{{\\s*${key}\\s*}}`, 'gi');
-                 // Handle potential multi-line values (like summary, experience)
-                 const formattedValue = value.replace(/\n/g, '<br>');
-                 html = html.replace(regex, formattedValue);
+                 let formattedValue = value?.replace(/\n/g, '<br>') ?? ''; // Handle potential undefined/null
 
-                 // Special handling for skills list if a specific placeholder exists
-                 if (key === 'skills' && html.includes('{{skillsList}}')) {
+                 // Specific formatting for lists (example for skills)
+                 if (key === 'skills' && value && html.includes('{{skillsList}}')) {
                      const skillsListHtml = value.split(',')
                          .map(skill => skill.trim())
                          .filter(skill => skill)
                          .map(skill => `<li>${skill}</li>`).join('');
                      html = html.replace(/{{skillsList}}/gi, `<ul>${skillsListHtml}</ul>`);
                  }
-                  // Special handling for employment history
-                 if (key === 'employmentHistory' && html.includes('{{employmentHistoryList}}')) {
+                 // Specific formatting for employment history
+                 else if (key === 'employmentHistory' && value && html.includes('{{employmentHistoryList}}')) {
                      const historyItems = value.split('\n\n').map(item => {
                         const lines = item.split('\n');
                         const titleLine = lines[0] || '';
@@ -155,18 +157,8 @@ export default function ResumeBuilderPage() {
                      }).join('');
                      html = html.replace(/{{employmentHistoryList}}/gi, historyItems);
                  }
-                // Special handling for references
-                 if (key === 'references' && html.includes('{{referencesList}}')) {
-                     const referenceItems = value.split('\n\n').map(item => {
-                        const lines = item.split('\n');
-                        const nameLine = lines[0] || '';
-                        const contactLine = lines[1] || '';
-                        return `<div class="mb-2"><p><strong>${nameLine}</strong><br>${contactLine}</p></div>`;
-                     }).join('');
-                     html = html.replace(/{{referencesList}}/gi, `<div class="references-section">${referenceItems}</div>`);
-                 }
-                 // Special handling for education
-                 if (key === 'education' && html.includes('{{educationList}}')) {
+                 // Specific formatting for education
+                 else if (key === 'education' && value && html.includes('{{educationList}}')) {
                      const educationItems = value.split('\n\n').map(item => {
                         const lines = item.split('\n');
                         const degreeLine = lines[0] || '';
@@ -175,10 +167,39 @@ export default function ResumeBuilderPage() {
                     }).join('');
                     html = html.replace(/{{educationList}}/gi, `<div class="education-section">${educationItems}</div>`);
                  }
+                  // Specific formatting for references
+                 else if (key === 'references' && value && html.includes('{{referencesList}}')) {
+                     const referenceItems = value.split('\n\n').map(item => {
+                        const lines = item.split('\n');
+                        const nameLine = lines[0] || '';
+                        const contactLine = lines[1] || '';
+                        return `<div class="mb-2"><p><strong>${nameLine}</strong><br>${contactLine}</p></div>`;
+                     }).join('');
+                     html = html.replace(/{{referencesList}}/gi, `<div class="references-section">${referenceItems}</div>`);
+                 }
+                  // Specific formatting for academic projects
+                 else if (key === 'academicProjects' && value && html.includes('{{academicProjectsList}}')) {
+                     const projectItems = value.split('\n\n').map(item => {
+                        const lines = item.split('\n');
+                        const titleLine = lines[0] || '';
+                        const descriptionLines = lines.slice(1).map(line => `<li>${line.replace(/^- /, '')}</li>`).join('');
+                        return `<div class="mb-4"><h4>${titleLine}</h4><ul>${descriptionLines}</ul></div>`;
+                     }).join('');
+                     html = html.replace(/{{academicProjectsList}}/gi, `<div class="academic-projects-section">${projectItems}</div>`);
+                 }
+                 // Handle simple replacements for other fields
+                 else {
+                     html = html.replace(regex, formattedValue);
+                 }
             });
+
 
             // Clean up any remaining placeholders
             html = html.replace(/{{\s*\w+\s*}}/gi, ''); // Remove unmatched placeholders
+
+            // Add base styling for preview
+            html = `<div class="prose prose-sm max-w-none p-6 text-black bg-white h-full overflow-auto">${html}</div>`;
+
 
             setPreviewHtml(html);
         } catch (error) {
@@ -212,30 +233,31 @@ export default function ResumeBuilderPage() {
                  setPreviewHtml("<p class='p-4 text-center text-red-600'>Failed to load preview library. Please check your connection.</p>");
             }
             document.body.appendChild(script);
+             // Cleanup script on unmount
+             return () => {
+                const existingScript = document.querySelector('script[src="https://unpkg.com/mammoth/mammoth.browser.min.js"]');
+                if (existingScript) {
+                    document.body.removeChild(existingScript);
+                }
+             };
         } else {
-             // Initial load only if a template is selected and we're not showing the gallery
-             if (selectedTemplate && !showTemplates) {
+             // Mammoth already loaded or window is undefined (SSR)
+             if (isClient && selectedTemplate && !showTemplates) {
                  loadTemplatePreview(selectedTemplate);
              } else {
-                 setIsLoadingPreview(false); // Stop loading if showing gallery initially
+                 setIsLoadingPreview(false);
              }
         }
-         // Cleanup script on unmount
-        return () => {
-            const script = document.querySelector('script[src="https://unpkg.com/mammoth/mammoth.browser.min.js"]');
-            if (script) {
-                document.body.removeChild(script);
-            }
-        };
-    }, []); // Run only once on mount
+    }, [isClient]); // Run only once on mount, but track isClient
 
 
     useEffect(() => {
         // Reload preview when template or data changes, but only if not showing the template selection screen
-        if (!showTemplates && selectedTemplate) {
+        if (!showTemplates && selectedTemplate && isClient) {
+             // Debounce the preview update
             const handler = setTimeout(() => {
                 loadTemplatePreview(selectedTemplate);
-            }, 500); // Debounce time
+            }, 300); // Short debounce time for responsiveness
 
             return () => clearTimeout(handler);
         }
@@ -254,24 +276,34 @@ export default function ResumeBuilderPage() {
     const handleTemplateSelect = (templateId: string) => {
         setSelectedTemplate(templateId);
         setShowTemplates(false); // Hide template selection and show editor/preview
-        loadTemplatePreview(templateId); // Load the selected template preview
+        loadTemplatePreview(templateId); // Load the selected template preview immediately
     };
 
     const handleDownload = (format: 'word' | 'pdf') => {
         console.log(`Download requested in ${format} format`);
         // Placeholder: Generate content based on resumeData and selected template structure
-        let fileContent = `Resume for ${resumeData.firstName} ${resumeData.lastName}\n\n`;
+        // In a real app, you'd need a server-side service or more complex client-side libs
+        // to generate actual DOCX/PDF from the data + template structure.
+        // This example just downloads raw text data.
+        let fileContent = `Name: ${resumeData.firstName} ${resumeData.lastName}\n`;
         fileContent += `Email: ${resumeData.email}\n`;
-        fileContent += `Summary: ${resumeData.summary}\n`;
-        // ... add other fields ...
+        fileContent += `Phone: ${resumeData.phone}\n`;
+        fileContent += `Address: ${resumeData.address}\n`;
+        fileContent += `\nProfile Summary:\n${resumeData.profile}\n`;
+        fileContent += `\nSkills: ${resumeData.skills}\n`;
+        fileContent += `\nEducation:\n${resumeData.education}\n`;
+        fileContent += `\nEmployment History:\n${resumeData.employmentHistory}\n`;
+        fileContent += `\nAcademic Projects:\n${resumeData.academicProjects}\n`;
+        fileContent += `\nHobbies: ${resumeData.hobbies}\n`;
+        fileContent += `\nLanguages: ${resumeData.languages}\n`;
+        fileContent += `\nReferences:\n${resumeData.references}\n`;
+
 
         if (format === 'word') {
             // This is a very basic .txt pretending to be .docx for placeholder purposes
-             // Real .docx generation requires a library like docx or mammoth (server-side recommended)
             downloadFile(`${resumeData.lastName}_${resumeData.firstName}_Resume.docx`, fileContent, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         } else if (format === 'pdf') {
             // This is a basic .txt pretending to be .pdf
-            // Real PDF generation requires a library like jsPDF (client-side) or Puppeteer (server-side)
             downloadFile(`${resumeData.lastName}_${resumeData.firstName}_Resume.pdf`, fileContent, 'application/pdf');
         }
     };
@@ -294,16 +326,16 @@ export default function ResumeBuilderPage() {
              )}
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="default" size="sm" disabled={showTemplates}>
+                  <Button variant="default" size="sm" disabled={showTemplates || !selectedTemplate}>
                       <Download className="mr-2 h-4 w-4" /> Download
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleDownload('word')}>
+                  <DropdownMenuItem onClick={() => handleDownload('word')} disabled={!selectedTemplate}>
                     <FileType className="mr-2 h-4 w-4" />
                     <span>Word (.docx)</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleDownload('pdf')}>
+                  <DropdownMenuItem onClick={() => handleDownload('pdf')} disabled={!selectedTemplate}>
                     <FileText className="mr-2 h-4 w-4" />
                      <span>PDF (.pdf)</span>
                   </DropdownMenuItem>
@@ -322,6 +354,7 @@ export default function ResumeBuilderPage() {
                         key={template.id}
                         className="cursor-pointer overflow-hidden shadow-md transition-all hover:shadow-lg hover:scale-105"
                         onClick={() => handleTemplateSelect(template.id)}
+                        aria-label={`Select ${template.name} template`}
                     >
                         <CardContent className="p-0">
                             <Image
@@ -331,6 +364,7 @@ export default function ResumeBuilderPage() {
                                 height={400}
                                 className="w-full object-cover aspect-[3/4]"
                                 data-ai-hint="resume template preview"
+                                priority // Load thumbnails faster
                             />
                              <div className="p-4 border-t">
                                 <p className="text-center font-medium">{template.name}</p>
@@ -344,13 +378,17 @@ export default function ResumeBuilderPage() {
          // Editor and Preview View
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
             {/* Left Panel: Form Inputs */}
-            <div className="lg:col-span-4">
-               <Card className="sticky top-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
+            <div className="lg:col-span-5"> {/* Adjusted column span */}
+               <Card className="sticky top-6 max-h-[calc(100vh-8rem)] overflow-y-auto shadow-md">
                  <CardHeader>
                     <CardTitle className="text-xl font-semibold">Edit Content</CardTitle>
                  </CardHeader>
                  <CardContent className="space-y-4 p-6">
-
+                     {/* Personal Details Section */}
+                     <div className="space-y-1">
+                        <Label htmlFor="jobTitle">Job Title</Label>
+                        <Input id="jobTitle" value={resumeData.jobTitle} onChange={handleInputChange} placeholder="The role you want"/>
+                    </div>
                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
                             <Label htmlFor="firstName">First Name</Label>
@@ -361,73 +399,95 @@ export default function ResumeBuilderPage() {
                             <Input id="lastName" value={resumeData.lastName} onChange={handleInputChange} />
                         </div>
                     </div>
-
-                     <div className="space-y-1">
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value={resumeData.email} onChange={handleInputChange} />
-                     </div>
-                      <div className="space-y-1">
-                        <Label htmlFor="phone">Phone</Label>
-                        <Input id="phone" type="tel" value={resumeData.phone} onChange={handleInputChange} />
-                     </div>
+                     <div className="grid grid-cols-2 gap-4">
+                         <div className="space-y-1">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" value={resumeData.email} onChange={handleInputChange} />
+                         </div>
+                          <div className="space-y-1">
+                            <Label htmlFor="phone">Phone</Label>
+                            <Input id="phone" type="tel" value={resumeData.phone} onChange={handleInputChange} />
+                         </div>
+                    </div>
                      <div className="space-y-1">
                         <Label htmlFor="address">Address</Label>
-                        <Input id="address" value={resumeData.address} onChange={handleInputChange} />
+                        <Input id="address" value={resumeData.address} onChange={handleInputChange} placeholder="City, Country"/>
                      </div>
 
+                     {/* Profile Section */}
                      <div className="space-y-1">
                         <Label htmlFor="profile">Profile Summary</Label>
                         <Textarea id="profile" value={resumeData.profile} onChange={handleInputChange} rows={5} />
                      </div>
 
+                     {/* Skills Section */}
+                     <div className="space-y-1">
+                        <Label htmlFor="skills">Skills (comma-separated)</Label>
+                        <Input id="skills" value={resumeData.skills} onChange={handleInputChange} placeholder="e.g., React, Node.js, Project Management" />
+                     </div>
+
+                     {/* Education Section */}
+                      <div className="space-y-1">
+                        <Label htmlFor="education">Education</Label>
+                        <Textarea id="education" value={resumeData.education} onChange={handleInputChange} rows={6} placeholder="Degree, Institution, Location&#10;Date Range&#10;&#10;Degree 2, Institution 2..." />
+                         <p className="text-xs text-muted-foreground">Use double line breaks between entries.</p>
+                     </div>
+
+                    {/* Academic Projects Section */}
+                     <div className="space-y-1">
+                        <Label htmlFor="academicProjects">Academic Projects</Label>
+                        <Textarea id="academicProjects" value={resumeData.academicProjects} onChange={handleInputChange} rows={6} placeholder="Project Title&#10;- Description point 1&#10;- Description point 2&#10;&#10;Project Title 2..." />
+                        <p className="text-xs text-muted-foreground">Use double line breaks between projects.</p>
+                     </div>
+
+                     {/* Employment History Section */}
                      <div className="space-y-1">
                         <Label htmlFor="employmentHistory">Employment History</Label>
                         <Textarea id="employmentHistory" value={resumeData.employmentHistory} onChange={handleInputChange} rows={10} placeholder="Company, Role&#10;Date Range&#10;- Responsibility 1&#10;- Responsibility 2&#10;&#10;Company 2, Role 2..." />
                          <p className="text-xs text-muted-foreground">Use double line breaks between job entries.</p>
                      </div>
 
-                      <div className="space-y-1">
-                        <Label htmlFor="education">Education</Label>
-                        <Textarea id="education" value={resumeData.education} onChange={handleInputChange} rows={4} placeholder="Degree, Institution, Location&#10;Date Range&#10;&#10;Degree 2, Institution 2..." />
-                         <p className="text-xs text-muted-foreground">Use double line breaks between entries.</p>
-                     </div>
-
+                     {/* Hobbies Section */}
                      <div className="space-y-1">
-                        <Label htmlFor="skills">Skills (comma-separated)</Label>
-                        <Input id="skills" value={resumeData.skills} onChange={handleInputChange} placeholder="e.g., React, Node.js, Project Management" />
+                        <Label htmlFor="hobbies">Hobbies</Label>
+                        <Input id="hobbies" value={resumeData.hobbies} onChange={handleInputChange} />
                      </div>
 
+                     {/* Languages Section */}
+                      <div className="space-y-1">
+                        <Label htmlFor="languages">Languages</Label>
+                        <Textarea id="languages" value={resumeData.languages} onChange={handleInputChange} rows={3} placeholder="Language 1&#10;Language 2"/>
+                         <p className="text-xs text-muted-foreground">Enter each language on a new line.</p>
+                     </div>
+
+                     {/* References Section */}
                      <div className="space-y-1">
                         <Label htmlFor="references">References</Label>
                         <Textarea id="references" value={resumeData.references} onChange={handleInputChange} rows={5} placeholder="Name, Title, Company&#10;Contact Info (Email/Phone)&#10;&#10;Name 2, Title 2..." />
                         <p className="text-xs text-muted-foreground">Use double line breaks between references.</p>
                      </div>
 
-
-                     {/* Removed Import Button - Needs more complex implementation */}
-                     {/* <div className="border-t pt-4">
-                        <Button variant="outline" className="w-full">
-                            <Upload className="mr-2 h-4 w-4" /> Import from Existing Resume
-                        </Button>
-                     </div> */}
-
                  </CardContent>
                </Card>
             </div>
 
             {/* Right Panel: Resume Preview */}
-            <div className="lg:col-span-8">
-              <Card className="h-[80vh] overflow-hidden border shadow-lg"> {/* Adjust height as needed */}
+            <div className="lg:col-span-7"> {/* Adjusted column span */}
+              <Card className="h-[80vh] overflow-hidden border shadow-lg sticky top-6"> {/* Adjust height as needed, added sticky */}
                  <CardContent className="h-full p-0">
                    {isLoadingPreview ? (
                      <div className="flex h-full items-center justify-center bg-secondary">
                        <LoadingSpinner />
                      </div>
-                   ) : (
+                   ) : previewHtml ? (
                      <div
-                       className="h-full overflow-y-auto bg-white text-black" // Basic styling for preview
+                       className="h-full overflow-y-auto bg-white" // Container for the preview content
                        dangerouslySetInnerHTML={{ __html: previewHtml }}
                      />
+                   ) : (
+                     <div className="flex h-full items-center justify-center bg-secondary text-muted-foreground">
+                       Select a template to see a preview.
+                     </div>
                    )}
                  </CardContent>
               </Card>
