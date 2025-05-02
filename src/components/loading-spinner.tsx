@@ -8,25 +8,42 @@ interface LoadingSpinnerProps {
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ size = 'md', className }) => {
-  // Base size is 112px as per provided CSS for lg
+  // Map size prop to Tailwind height/width classes
   const sizeClasses = {
-    sm: 'w-[56px] h-[56px]', // Example scaling (0.5x)
-    md: 'w-[84px] h-[84px]', // Example scaling (0.75x)
-    lg: 'w-[112px] h-[112px]', // Base size from CSS
+    sm: 'h-6 w-6',
+    md: 'h-12 w-12',
+    lg: 'h-20 w-20',
   };
 
-  // NOTE: The provided CSS animations (abox1, abox2, abox3) are fixed pixel values.
-  // Scaling the container (.loader) won't automatically scale the animation movements.
-  // For true scaling, the keyframes would need variants or JS manipulation,
-  // which is complex. We'll apply the container size and use the 'lg' animation styles for now.
-  // If sm/md sizes look odd, the keyframes in globals.css would need adjustment.
-
   return (
-    <div className={cn('loader relative', sizeClasses[size], className)}>
-      {/* Apply base box styles and animation classes from globals.css */}
-      <div className={cn('box1')}></div>
-      <div className={cn('box2')}></div>
-      <div className={cn('box3')}></div>
+    <div className={cn('flex justify-center items-center', className)}>
+      <svg
+        className={cn(
+          'animate-spin text-primary', // Use primary color (black/white) and Tailwind spin animation
+          sizeClasses[size]
+        )}
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        role="status" // Add role for accessibility
+        aria-label="Loading" // Add aria-label for accessibility
+      >
+        {/* Background circle */}
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        ></circle>
+        {/* Foreground spinning arc */}
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
+      </svg>
     </div>
   );
 };
