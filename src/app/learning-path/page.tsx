@@ -9,10 +9,10 @@ import { ArrowLeft, GraduationCap, Lightbulb, BookOpen, ExternalLink } from 'luc
 import LoadingSpinner from '@/components/loading-spinner';
 import { getLearningPath, type Course } from '@/services/learning-path'; // Import the service
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/components/auth-provider'; // Assuming skill gaps might relate to user profile
+// Removed useAuth import
 
 export default function LearningPathPage() {
-  const { user } = useAuth(); // Use user context if needed
+  // Removed useAuth hook usage
   const [learningPath, setLearningPath] = useState<Course[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,13 +24,11 @@ export default function LearningPathPage() {
       setError(null);
       try {
         // TODO: Determine skills needed based on resume analysis vs job requirements
-        // This might involve fetching data from a previous step or user profile
-        if (user) {
-            console.log("Fetching learning path for user:", user.uid);
-            // Potentially fetch skill gap analysis results here
-        }
+        // This might involve fetching data from a previous step or user profile.
+        // Since auth is removed, this needs a different source if user-specific data is required.
+        console.log("Fetching learning path based on needed skills..."); // Updated log message
 
-        // For now, use the example skillsNeeded state
+        // Use the example skillsNeeded state
         const path = await getLearningPath(skillsNeeded);
         setLearningPath(path);
       } catch (err) {
@@ -42,7 +40,7 @@ export default function LearningPathPage() {
     };
 
     fetchPath();
-  }, [user, skillsNeeded]); // Re-fetch if user or skillsNeeded change
+  }, [skillsNeeded]); // Removed user dependency
 
   return (
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">

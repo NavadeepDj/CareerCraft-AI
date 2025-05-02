@@ -1,33 +1,12 @@
 'use client';
 
 import type React from 'react';
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/components/auth-provider';
-import LoginPage from '@/components/login-page';
 import DashboardPage from '@/components/dashboard-page';
-import LoadingSpinner from '@/components/loading-spinner';
+// Removed useState, useEffect, useAuth, LoginPage, LoadingSpinner imports
 
 export default function Home() {
-  const { user, loading } = useAuth();
-  const [authChecked, setAuthChecked] = useState(false);
+  // Removed auth state checking logic
 
-  useEffect(() => {
-    if (!loading) {
-      setAuthChecked(true);
-    }
-  }, [loading]);
-
-  if (!authChecked) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    );
-  }
-
-  if (!user) {
-    return <LoginPage />;
-  }
-
+  // Directly render the DashboardPage as authentication is removed
   return <DashboardPage />;
 }

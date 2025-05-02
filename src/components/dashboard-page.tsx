@@ -4,11 +4,12 @@
 import type React from 'react';
 import { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/components/auth-provider';
+// Removed useAuth import
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { LogOut, UploadCloud, FileText, Search, GraduationCap, UserSquare } from 'lucide-react';
+// Removed LogOut icon import
+import { UploadCloud, FileText, Search, GraduationCap, UserSquare } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { analyzeResume } from '@/ai/flows/resume-analysis'; // Import the AI function
@@ -17,7 +18,7 @@ import LoadingSpinner from './loading-spinner';
 
 
 export default function DashboardPage() {
-  const { user, signOut } = useAuth();
+  // Removed useAuth hook usage (user, signOut)
   const router = useRouter();
   const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -137,10 +138,7 @@ export default function DashboardPage() {
   };
 
 
-  const handleLogout = async () => {
-    await signOut();
-    router.push('/'); // Redirect to login page after logout
-  };
+  // Removed handleLogout function
 
   return (
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
@@ -150,13 +148,7 @@ export default function DashboardPage() {
            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-primary"><path d="M15.5 3H8.5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/><path d="M12 3v18"/><path d="M12 8H8"/><path d="M12 13H8"/><path d="M12 18H8"/></svg>
           <h1 className="text-3xl font-bold text-primary">ResumeAI</h1>
         </div>
-        <div className="flex items-center space-x-4 mt-4 md:mt-0">
-          {user && <span className="text-sm text-muted-foreground hidden sm:inline">Welcome, {user.displayName || user.email}</span>}
-          <Button variant="outline" size="icon" onClick={handleLogout} className="hover:bg-destructive hover:text-destructive-foreground transition-colors duration-200 group">
-            <LogOut className="h-5 w-5 group-hover:text-destructive-foreground" />
-            <span className="sr-only">Logout</span>
-          </Button>
-        </div>
+        {/* Removed user welcome message and logout button section */}
       </header>
 
       <main>

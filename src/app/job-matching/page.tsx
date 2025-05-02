@@ -9,10 +9,10 @@ import { ArrowLeft, Briefcase, MapPin, Settings2 } from 'lucide-react';
 import LoadingSpinner from '@/components/loading-spinner';
 import { getMatchingJobs, type Job } from '@/services/job-matching'; // Import the service
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/components/auth-provider'; // Assuming you need user profile info
+// Removed useAuth import
 
 export default function JobMatchingPage() {
-  const { user } = useAuth(); // Get user info if needed for profile
+  // Removed useAuth hook usage
   const [matchingJobs, setMatchingJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,11 +23,10 @@ export default function JobMatchingPage() {
       setError(null);
       try {
         // TODO: Get user profile/resume data to pass to the service
-        const userProfile = "User's resume content or extracted skills"; // Replace with actual profile data
-        if (user) {
-             // Ideally, fetch user's processed resume data from backend/state
-             console.log("Fetching jobs for user:", user.uid);
-        }
+        // Since auth is removed, this needs a different source if user-specific data is required.
+        // For now, using a placeholder.
+        const userProfile = "User's resume content or extracted skills"; // Placeholder profile data
+        console.log("Fetching jobs based on profile data..."); // Updated log message
 
         const jobs = await getMatchingJobs(userProfile);
         setMatchingJobs(jobs);
@@ -40,7 +39,7 @@ export default function JobMatchingPage() {
     };
 
     fetchJobs();
-  }, [user]); // Re-fetch if user changes (or if profile data updates)
+  }, []); // Removed user dependency
 
   return (
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
