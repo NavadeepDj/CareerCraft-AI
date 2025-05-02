@@ -81,8 +81,18 @@ export default function ResumeBuilderPage() {
         }
 
         try {
+            // Check if the path is valid before fetching
+             if (!template.path || typeof template.path !== 'string') {
+               throw new Error('Invalid template path.');
+             }
+
             const response = await fetch(template.path);
             if (!response.ok) {
+                // Log a more specific error if the template file is not found
+                if (response.status === 404) {
+                  console.error(`Template file not found at path: ${template.path}`);
+                  throw new Error(`Template file not found: ${template.path}. Make sure the file exists in the public/templates directory.`);
+                }
                 throw new Error(`Failed to fetch template: ${response.statusText}`);
             }
             const blob = await response.blob();
@@ -110,7 +120,7 @@ export default function ResumeBuilderPage() {
             setPreviewHtml(html);
         } catch (error) {
             console.error('Error loading template preview:', error);
-            setPreviewHtml(`<p>Error loading preview. Make sure the template file exists at the specified path and Mammoth.js is loaded.</p>`);
+            setPreviewHtml(`<p>Error loading preview. ${error instanceof Error ? error.message : 'Ensure the template file exists and Mammoth.js is loaded.'}</p>`);
         } finally {
             setIsLoadingPreview(false);
         }
@@ -123,7 +133,7 @@ export default function ResumeBuilderPage() {
         }, 500); // Debounce time
 
         return () => clearTimeout(handler);
-    }, [resumeData, selectedTemplate, isClient]);
+    }, [resumeData, selectedTemplate, isClient]); // Added isClient dependency
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
