@@ -82,13 +82,15 @@ const prompt = ai.definePrompt({
   output: {
     schema: AnalyzeResumeOutputSchema,
   },
-  // Updated prompt to match the Python calculate_ats_score function
+  // Updated prompt to match the Python calculate_ats_score function and desired output format
   prompt: `Analyze the following resume against the job description and calculate an ATS (Applicant Tracking System) score out of 100. Provide a detailed breakdown of the score, including:
-1. Keyword match percentage
-2. Skills alignment
-3. Experience relevance
-4. Education match
-5. Overall formatting and readability
+1. Keyword match percentage (Score out of 20)
+2. Skills alignment (Score out of 20)
+3. Experience relevance (Score out of 20)
+4. Education match (Score out of 20)
+5. Formatting and readability (Score out of 20)
+
+Assign a numerical score between 0 and 20 for each of the 5 breakdown categories. The total ATS score should be the sum of these 5 scores.
 
 Resume:
 {{#if resumeText}}
@@ -100,18 +102,8 @@ Resume:
 Job Description:
 {{{jobDescription}}}
 
-Provide the score and explanation in the following format strictly adhering to the field descriptions in the output schema:
-ATS Score: [score]/100
-
-Breakdown:
-1. Keyword match: [score]/20
-2. Skills alignment: [score]/20
-3. Experience relevance: [score]/20
-4. Education match: [score]/20
-5. Formatting and readability: [score]/20
-
-Explanation:
-[Detailed explanation of each component and suggestions for improvement]`,
+Provide the scores and a detailed explanation in the exact JSON format specified by the output schema. Ensure the 'explanation' field contains a thorough analysis covering each scored category and provides specific, actionable suggestions for how the user can improve their resume to better match the job description. Focus on clarity and helpfulness in the explanation.
+`,
 });
 
 const analyzeResumeFlow = ai.defineFlow<
@@ -124,19 +116,46 @@ const analyzeResumeFlow = ai.defineFlow<
     outputSchema: AnalyzeResumeOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    if (!output) {
-        throw new Error("AI analysis failed to generate a response.");
-    }
-    // Basic validation/clamping to ensure scores are within range, although schema handles this.
-    output.atsScore = Math.max(0, Math.min(100, output.atsScore));
-    output.keywordMatchScore = Math.max(0, Math.min(20, output.keywordMatchScore));
-    output.skillsAlignmentScore = Math.max(0, Math.min(20, output.skillsAlignmentScore));
-    output.experienceRelevanceScore = Math.max(0, Math.min(20, output.experienceRelevanceScore));
-    output.educationMatchScore = Math.max(0, Math.min(20, output.educationMatchScore));
-    output.formattingReadabilityScore = Math.max(0, Math.min(20, output.formattingReadabilityScore));
+    console.log("Calling Genkit analyzeResumeFlow with input:", { jobDescriptionLength: input.jobDescription.length, hasResumeUri: !!input.resumeDataUri, hasResumeText: !!input.resumeText });
+    try {
+        const {output} = await prompt(input);
+        if (!output) {
+            throw new Error("AI analysis failed to generate a response.");
+        }
+        console.log("Received output from prompt:", output);
 
-    return output;
+        // Validate and ensure scores are within range (though schema should handle this)
+        output.atsScore = Math.max(0, Math.min(100, output.atsScore));
+        output.keywordMatchScore = Math.max(0, Math.min(20, output.keywordMatchScore));
+        output.skillsAlignmentScore = Math.max(0, Math.min(20, output.skillsAlignmentScore));
+        output.experienceRelevanceScore = Math.max(0, Math.min(20, output.experienceRelevanceScore));
+        output.educationMatchScore = Math.max(0, Math.min(20, output.educationMatchScore));
+        output.formattingReadabilityScore = Math.max(0, Math.min(20, output.formattingReadabilityScore));
+
+        // Optional: Recalculate atsScore as sum just in case AI didn't sum correctly
+        const calculatedSum = output.keywordMatchScore + output.skillsAlignmentScore + output.experienceRelevanceScore + output.educationMatchScore + output.formattingReadabilityScore;
+        if (output.atsScore !== calculatedSum) {
+             console.warn(`AI ATS score (${output.atsScore}) differs from calculated sum (${calculatedSum}). Using calculated sum.`);
+             // Decide whether to overwrite or just log. Overwriting might be safer.
+             // output.atsScore = calculatedSum;
+        }
+
+
+        // Ensure explanation is not empty
+        if (!output.explanation || output.explanation.trim() === "") {
+            output.explanation = "No detailed explanation provided by the analysis.";
+             console.warn("AI analysis returned an empty explanation.");
+        }
+
+        return output;
+    } catch (error) {
+        console.error("Error in analyzeResumeFlow:", error);
+        // Rethrow a more specific error or handle it
+         if (error instanceof Error) {
+            throw new Error(`Genkit flow failed: ${error.message}`);
+        } else {
+             throw new Error("An unknown error occurred in the Genkit flow.");
+        }
+    }
   }
 );
-
