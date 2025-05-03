@@ -620,11 +620,19 @@ export default function AutoApplyPage() {
   const onEmailSubjectChange = (e: ChangeEvent<HTMLInputElement>) => setEmailSubject(e.target.value);
   const onEmailBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setEmailBody(e.target.value);
   const onTestEmailRecipientChange = (e: ChangeEvent<HTMLInputElement>) => setTestEmailRecipient(e.target.value);
-  // Placeholder for creating a new template
+
+  // Handle creating a new template
   const handleCreateTemplate = () => {
-      toast({ title: "Create Template (Placeholder)", description: "Functionality to create a new template is not yet implemented." });
-      // In a real app: Clear fields, set isUserTemplate, generate new ID, maybe open a modal?
+      // toast({ title: "Create Template (Placeholder)", description: "Functionality to create a new template is not yet implemented." });
+       // Set default values for a new template
+      setSelectedEmailTemplateId(''); // Clear selection to indicate it's a new/custom one
+      setEmailTemplateName('New Template');
+      setEmailSubject('Email Subject');
+      setEmailBody('{{COMPANY_NAME}} {{JOB_TITLE}} {{JOB_LOCATION}} {{USER_FIRSTNAME}} {{USER_LASTNAME}}');
+       // Optionally, focus the name input or something similar
+       document.getElementById('emailTemplateName')?.focus();
   };
+
   // Placeholder for sending test email
   const handleSendTestEmail = () => {
       if (!testEmailRecipient) {
@@ -1239,5 +1247,3 @@ export default function AutoApplyPage() {
     </div>
   );
 }
-
-    
