@@ -5,7 +5,7 @@ import React, { useState, useCallback, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List } from 'lucide-react';
+import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle } from 'lucide-react';
 import LoadingSpinner from '@/components/loading-spinner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,11 +24,53 @@ interface AppliedJob {
   appliedDate: string;
 }
 
-type ViewState = 'configure' | 'applying' | 'results' | 'error';
+// Add 'statistics' view state
+type ViewState = 'statistics' | 'configure' | 'applying' | 'results' | 'error';
+
+// New component for the statistics cards
+const StatisticsDashboard: React.FC<{ onConfigure: () => void }> = ({ onConfigure }) => {
+  const stats = [
+    { title: 'Active Loops', value: 0, icon: RefreshCcw },
+    { title: 'Total Matches', value: 0, icon: Share2 },
+    { title: 'Applications Submitted', value: 0, icon: FileCheck },
+    { title: 'Emails Sent', value: 0, icon: Mail },
+    { title: 'Pending applications', value: 0, icon: AlertTriangle },
+  ];
+
+  return (
+    <Card>
+        <CardHeader>
+            <CardTitle className="text-xl">Statistics</CardTitle>
+            <CardDescription>Overview of your automated job application activity.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {stats.map((stat) => (
+                <Card key={stat.title} className="flex items-center justify-between p-4 bg-secondary shadow-sm">
+                    <div>
+                    <p className="text-sm text-muted-foreground">{stat.title}</p>
+                    <p className="text-2xl font-semibold">{stat.value}</p>
+                    </div>
+                    <stat.icon className="h-8 w-8 text-muted-foreground" />
+                </Card>
+                ))}
+            </div>
+        </CardContent>
+        <CardFooter className="border-t pt-4">
+            <Button onClick={onConfigure} className="w-full">
+                <Settings className="mr-2 h-4 w-4" />
+                Configure New Simulation
+            </Button>
+        </CardFooter>
+    </Card>
+  );
+};
+
 
 export default function AutoApplyPage() {
   const { toast } = useToast();
-  const [viewState, setViewState] = useState<ViewState>('configure');
+  // Set initial state to 'statistics'
+  const [viewState, setViewState] = useState<ViewState>('statistics');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [resumeDataUri, setResumeDataUri] = useState<string | null>(null); // Store as Data URI if needed by potential future API
   const [keywords, setKeywords] = useState<string>('');
@@ -40,8 +82,9 @@ export default function AutoApplyPage() {
   const handleFileChange = useCallback((file: File | null) => {
       setUploadedFile(null);
       setResumeDataUri(null);
-      setViewState('configure'); // Reset to config view
-      setAppliedJobs([]); // Clear previous results
+      // Don't reset view state here, handle navigation explicitly
+      // setViewState('configure'); // Reset to config view
+      // setAppliedJobs([]); // Clear previous results on new config
 
       if (file) {
           if (file.size > 5 * 1024 * 1024) { // 5MB limit
@@ -104,17 +147,7 @@ export default function AutoApplyPage() {
     setAppliedJobs([]); // Clear previous results
 
     try {
-      // **SIMULATION:** In a real app, this would involve:
-      // 1. Calling a job board API or scraper with keywords/location.
-      // 2. For each job found:
-      //    a. Analyze if it's a good match based on the resume (using AI perhaps).
-      //    b. Navigate to the application page (using browser automation like Puppeteer/Playwright on a backend).
-      //    c. Parse the application form.
-      //    d. Fill the form using resume data (extremely complex).
-      //    e. Handle logins, CAPTCHAs, unique questions.
-      //    f. Submit the application.
-      //    g. Record the result.
-
+      // **SIMULATION:** In a real app, this would involve complex backend processes.
       console.log(`Simulating auto-apply for keywords: "${keywords}", location: "${location}" using resume: ${uploadedFile.name}`);
 
       // Simulate API call delay and application process
@@ -149,14 +182,27 @@ export default function AutoApplyPage() {
     }
   };
 
+  // Function to switch to configuration view
+  const navigateToConfigure = () => {
+      setViewState('configure');
+      // Optionally clear old data when starting new configuration
+      // setUploadedFile(null);
+      // setResumeDataUri(null);
+      // setKeywords('');
+      // setLocation('');
+      // setAppliedJobs([]);
+  };
+
   const renderContent = () => {
      switch(viewState) {
+         case 'statistics': // Render statistics dashboard first
+            return <StatisticsDashboard onConfigure={navigateToConfigure} />;
          case 'configure':
             return (
                  <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><Bot className="h-6 w-6 text-primary" /> Configure Auto-Apply</CardTitle>
-                        <CardDescription>Upload your resume and specify job criteria. The AI will simulate finding and applying to matching jobs.</CardDescription>
+                        <CardTitle className="flex items-center gap-2"><Bot className="h-6 w-6 text-primary" /> Configure Auto-Apply Simulation</CardTitle>
+                        <CardDescription>Upload your resume and specify job criteria. The tool will simulate finding and applying to matching jobs.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
                         {/* File Upload Area */}
@@ -179,7 +225,7 @@ export default function AutoApplyPage() {
                               {uploadedFile ? uploadedFile.name : "Drag &amp; drop your resume here"}
                             </span>
                             <span className="text-xs text-muted-foreground">
-                              {uploadedFile ? "(Click or drag to replace)" : "or click to browse (PDF, DOCX, max 5MB)"}
+                              {uploadedFile ? `(${Math.round(uploadedFile.size / 1024)} KB) Click or drag to replace` : "or click to browse (PDF, DOCX, TXT, DOC - max 5MB)"}
                             </span>
                             <Input
                               type="file"
@@ -213,21 +259,25 @@ export default function AutoApplyPage() {
                             placeholder="e.g., Remote, New York, Austin TX"
                             required
                           />
+                           <p className="text-xs text-muted-foreground">Specify city, state, country, or "Remote".</p>
                         </div>
                          {/* Disclaimer */}
                          <Alert variant="default" className="bg-secondary border-primary/20">
                            <Bot className="h-4 w-4" />
                            <AlertTitle>Simulation Notice</AlertTitle>
                            <AlertDescription>
-                             This feature simulates the job application process. It will find potential matches but **will not actually submit applications** on external websites due to complexity and security reasons.
+                             This feature simulates the job application process. It **will not actually submit applications** on external websites due to the complexity and ethical considerations involved.
                            </AlertDescription>
                          </Alert>
 
                     </CardContent>
-                    <CardFooter>
-                        <Button className="w-full" onClick={handleStartAutoApply} disabled={!uploadedFile || !keywords.trim() || !location.trim()}>
+                    <CardFooter className="flex justify-between">
+                        <Button variant="outline" onClick={() => setViewState('statistics')}>
+                            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Stats
+                        </Button>
+                        <Button onClick={handleStartAutoApply} disabled={!uploadedFile || !keywords.trim() || !location.trim()}>
                           <Play className="mr-2 h-4 w-4" />
-                          Start Auto-Applying (Simulation)
+                          Start Simulation
                         </Button>
                     </CardFooter>
                 </Card>
@@ -245,7 +295,7 @@ export default function AutoApplyPage() {
                 <Card>
                     <CardHeader>
                          <CardTitle className="flex items-center gap-2"><List className="h-6 w-6 text-primary" /> Simulated Application Results</CardTitle>
-                        <CardDescription>Overview of the jobs the simulation attempted to apply for.</CardDescription>
+                        <CardDescription>Overview of the jobs the simulation attempted to apply for based on your criteria.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4 max-h-[60vh] overflow-y-auto">
                          {appliedJobs.length > 0 ? (
@@ -253,7 +303,7 @@ export default function AutoApplyPage() {
                                 <div key={job.id} className="flex items-center justify-between rounded-md border p-4 shadow-sm">
                                      <div className="space-y-1">
                                         <p className="font-semibold">{job.title} - <span className="text-muted-foreground">{job.company}</span></p>
-                                        <p className="text-sm text-muted-foreground">{job.location} - Applied: {job.appliedDate}</p>
+                                        <p className="text-sm text-muted-foreground">{job.location} - Simulated: {job.appliedDate}</p>
                                      </div>
                                      <Badge variant={job.status === 'Applied' ? 'default' : 'destructive'} className={cn(job.status === 'Applied' && 'bg-green-600 text-white')}>
                                         {job.status === 'Applied' ? <CircleCheck className="mr-1 h-3 w-3" /> : <CircleX className="mr-1 h-3 w-3" />}
@@ -262,11 +312,14 @@ export default function AutoApplyPage() {
                                 </div>
                             ))
                         ) : (
-                            <p className="text-center text-muted-foreground">No simulated applications were processed.</p>
+                            <p className="text-center text-muted-foreground">No simulated applications were processed in this run.</p>
                         )}
                      </CardContent>
                      <CardFooter className="flex justify-between border-t pt-4">
-                        <Button variant="outline" onClick={() => setViewState('configure')}>Start New Simulation</Button>
+                        <Button variant="outline" onClick={navigateToConfigure}>Start New Simulation</Button>
+                        <Button variant="secondary" onClick={() => setViewState('statistics')}>
+                            Back to Stats
+                        </Button>
                      </CardFooter>
                  </Card>
              );
@@ -279,8 +332,11 @@ export default function AutoApplyPage() {
                     <CardContent>
                         <p className="text-destructive">{errorMessage || "An unexpected error occurred during the simulation."}</p>
                     </CardContent>
-                    <CardFooter>
-                        <Button variant="outline" onClick={() => setViewState('configure')}>Try Again</Button>
+                    <CardFooter className="flex justify-between">
+                        <Button variant="outline" onClick={navigateToConfigure}>Try Again</Button>
+                        <Button variant="secondary" onClick={() => setViewState('statistics')}>
+                            Back to Stats
+                        </Button>
                     </CardFooter>
                 </Card>
              );
@@ -296,11 +352,14 @@ export default function AutoApplyPage() {
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
           </Button>
         </Link>
-        <h1 className="text-xl md:text-2xl font-semibold text-primary text-center flex-grow">Automated Job Application (Simulation)</h1>
+        {/* Adjust title based on view state */}
+        <h1 className="text-xl md:text-2xl font-semibold text-primary text-center flex-grow">
+            {viewState === 'statistics' ? 'Auto Apply Dashboard' : 'Automated Job Application (Simulation)'}
+        </h1>
         <div className="w-[150px]"></div> {/* Spacer */}
       </header>
 
-      <main className="mx-auto max-w-3xl">
+      <main className="mx-auto max-w-4xl"> {/* Wider max-width for dashboard */}
         {renderContent()}
       </main>
 
