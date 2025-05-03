@@ -28,6 +28,7 @@ const Alert = React.forwardRef<
     role="alert"
     className={cn(alertVariants({ variant }), className)}
     {...props}
+    // Icon is now expected to be passed as a child, typically the first child
   />
 ))
 Alert.displayName = "Alert"
@@ -36,6 +37,7 @@ const AlertTitle = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLHeadingElement>
 >(({ className, ...props }, ref) => (
+  // The div wrapper for title and description handles the pl-7 spacing when an icon is present
   <h5
     ref={ref}
     className={cn("mb-1 font-medium leading-none tracking-tight", className)}
@@ -48,6 +50,7 @@ const AlertDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, ...props }, ref) => (
+  // The div wrapper for title and description handles the pl-7 spacing when an icon is present
   <div
     ref={ref}
     className={cn("text-sm [&_p]:leading-relaxed", className)}
@@ -57,3 +60,5 @@ const AlertDescription = React.forwardRef<
 AlertDescription.displayName = "AlertDescription"
 
 export { Alert, AlertTitle, AlertDescription }
+
+    
