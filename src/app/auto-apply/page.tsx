@@ -541,6 +541,7 @@ export default function AutoApplyPage() {
   const [emailSubject, setEmailSubject] = useState<string>(popularTemplates[0]?.subject || '');
   const [emailBody, setEmailBody] = useState<string>(popularTemplates[0]?.body || '');
   const [testEmailRecipient, setTestEmailRecipient] = useState<string>('sujithgopi740@gmail.com'); // Default from image
+  const [isSaving, setIsSaving] = useState(false);
 
 
   const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
@@ -643,11 +644,20 @@ export default function AutoApplyPage() {
        // Actual implementation would involve a backend service.
   };
   // Placeholder for saving changes to template (if editable)
-  const handleSaveChanges = () => {
-       toast({ title: "Save Changes (Placeholder)", description: `Simulating saving changes to template '${emailTemplateName}'.` });
+  const handleSaveChanges = async () => {
        // In a real app: Update the template in state/backend if it's a user template
        // Maybe move to the next step after saving
-       setConfigureStep('settings');
+      if (!emailTemplateName.trim() || !emailSubject.trim() || !emailBody.trim()) {
+             toast({ title: "Incomplete Email Template", description: "Please ensure the template has name, subject, and body.", variant: "destructive"});
+             return;
+         }
+
+       setIsSaving(true);
+       toast({ title: "Saving Changes (Simulation)", description: `Simulating saving changes to template '${emailTemplateName}'.` });
+       await new Promise(resolve => setTimeout(resolve, 1000));
+
+       setIsSaving(false);
+       setConfigureStep('settings'); //Now move to settings step
   };
 
 
@@ -1072,7 +1082,7 @@ export default function AutoApplyPage() {
                                          />
                                          <p className="text-xs text-muted-foreground">Hint: type {'{{'} to show the suggestions list (feature not implemented). NOTE: We will attach your CV to this email.</p>
                                      </div>
-                                     <Button onClick={handleSaveChanges} variant="default" className="bg-green-600 hover:bg-green-700 text-white">SAVE</Button> {/* Match style from image */}
+                                      <Button onClick={handleSaveChanges} variant="default" className="bg-green-600 hover:bg-green-700 text-white" disabled={isSaving}>{isSaving ? "Saving..." : "SAVE"}</Button> {/* Match style from image */}
 
                                      {/* Send Test Email Section */}
                                      <div className="border-t pt-4 mt-4 space-y-2">
@@ -1135,7 +1145,7 @@ export default function AutoApplyPage() {
 
                              {/* Show "Next" on all steps except the last one */}
                               {configureStep !== 'review' ? (
-                                <Button onClick={handleNextStep}>
+                                <Button onClick={handleNextStep} disabled={isSaving}>
                                     Next
                                     <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" /> {/* Right Arrow */}
                                  </Button>
@@ -1247,3 +1257,4 @@ export default function AutoApplyPage() {
     </div>
   );
 }
+
