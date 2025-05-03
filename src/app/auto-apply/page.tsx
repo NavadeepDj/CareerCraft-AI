@@ -613,13 +613,13 @@ export default function AutoApplyPage() {
                                                         key={template.id}
                                                         variant="ghost"
                                                         className={cn(
-                                                            "w-full justify-start h-auto py-2 px-3 text-left",
+                                                            "w-full justify-start h-auto py-2 px-3 text-left whitespace-normal", // Added whitespace-normal
                                                             selectedEmailTemplateId === template.id && "bg-secondary font-semibold"
                                                         )}
                                                         onClick={() => handleSelectTemplate(template.id)}
                                                     >
                                                         {template.displayName}
-                                                        {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary" />}
+                                                        {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary flex-shrink-0" />} {/* Added flex-shrink-0 */}
                                                     </Button>
                                                 ))}
                                              </div>
@@ -634,13 +634,13 @@ export default function AutoApplyPage() {
                                                         key={template.id}
                                                         variant="ghost"
                                                         className={cn(
-                                                            "w-full justify-start h-auto py-2 px-3 text-left",
+                                                            "w-full justify-start h-auto py-2 px-3 text-left whitespace-normal", // Added whitespace-normal
                                                             selectedEmailTemplateId === template.id && "bg-secondary font-semibold"
                                                         )}
                                                         onClick={() => handleSelectTemplate(template.id)}
                                                     >
                                                          {template.displayName}
-                                                         {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary" />}
+                                                         {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary flex-shrink-0" />} {/* Added flex-shrink-0 */}
                                                     </Button>
                                                  ))}
                                                 {allTemplates.filter(t => t.isUserTemplate).length === 0 && (
