@@ -50,15 +50,390 @@ interface EmailTemplate {
     isUserTemplate?: boolean; // Flag for user-created templates
 }
 
+// Updated templates based on user input
 const popularTemplates: EmailTemplate[] = [
-    { id: 'tpl-forward-thinking', name: 'The Forward-Thinking Application', displayName: 'The Forward-Thinking Application', subject: 'Forward-Thinking Approach to {{JOB_TITLE}}', body: 'Dear Hiring Team,\n\nI hope this message finds you in good health.\n\nI am writing to express my interest in the {{JOB_TITLE}} position at {{COMPANY_NAME}}. Known for my forward-thinking approach in this field, I am confident in my ability to bring innovative ideas and contribute to your team\'s success.\n\nAttached is my resume for your consideration. I would welcome the opportunity to discuss how my forward-thinking mindset aligns with {{COMPANY_NAME}}\'s vision.\n\nBest regards,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}' },
-    { id: 'tpl-ask-open', name: 'Ask regarding open position 2', displayName: 'Ask regarding open position 2', subject: 'Inquiry Regarding Open Position - {{JOB_TITLE}}', body: 'Dear Hiring Manager,\n\nI am writing to inquire about the open {{JOB_TITLE}} position I saw advertised on [Platform where you saw the job].\n\nMy background in [mention relevant skills/experience] aligns well with the requirements listed. I am eager to learn more about this opportunity and how I can contribute to {{COMPANY_NAME}}.\n\nThank you for your time and consideration.\n\nSincerely,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}' },
-    { id: 'tpl-expressive', name: 'The Expressive Application', displayName: 'The Expressive Application', subject: 'Passionate Application for {{JOB_TITLE}} at {{COMPANY_NAME}}', body: 'Dear [Hiring Manager Name, if known, otherwise Hiring Team],\n\nI was thrilled to see the opening for the {{JOB_TITLE}} position at {{COMPANY_NAME}}. My passion for [relevant field/skill] and my experience in [key achievement or skill] make me confident I can make a significant impact.\n\nI\'ve attached my resume detailing my qualifications. I am excited about the possibility of joining your team and contributing to your success.\n\nWarm regards,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}' },
-    { id: 'tpl-present-yourself', name: 'Present yourself', displayName: 'Present yourself', subject: 'Introduction and Interest in {{COMPANY_NAME}}', body: 'Dear Hiring Team,\n\nMy name is {{USER_FIRSTNAME}} {{USER_LASTNAME}}, and I am writing to introduce myself and express my strong interest in potential opportunities at {{COMPANY_NAME}}.\n\nWith a background in [mention your field] and skills including [mention 1-2 key skills], I believe I could be a valuable asset to your team.\n\nI have attached my resume for your review and would appreciate the chance to discuss how my qualifications align with your needs.\n\nThank you,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}' },
+    {
+        id: 'tpl-forward-thinking',
+        name: 'The Forward-Thinking Application',
+        displayName: 'The Forward-Thinking Application',
+        subject: 'Forward-Thinking Approach to {{JOB_TITLE}}',
+        body: `Dear Hiring Team,
+
+I hope this message finds you in good health.
+
+I am writing to express my interest in the {{JOB_TITLE}} position at {{COMPANY_NAME}}. Known for my forward-thinking approach in this field, I am confident in my ability to bring innovative ideas and contribute to your team's success.
+
+Attached is my resume for your consideration. I would welcome the opportunity to discuss how my forward-thinking mindset aligns with {{COMPANY_NAME}}'s vision.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-ask-open', // Kept original ID, updated content
+        name: 'Ask regarding open position 2',
+        displayName: 'Ask regarding open position 2',
+        subject: 'Quick question regarding an amazing opportunity',
+        body: `Dear Hiring Team at {{COMPANY_NAME}},
+
+I hope that this email finds you well and your day is off to a great start. I am reaching out to you today because I am actively searching for a new role, and I recently learned about the {{JOB_TITLE}} opportunity at {{COMPANY_NAME}}, and I am extremely interested in this opportunity.
+
+Additionally, I wanted to confirm that this role is still open and to see if there is an opportunity for us to discuss my qualifications further.
+
+I am confident that my experience coupled with my desire to make an impact within the role makes me a strong fit for the position.
+
+I value any insight that you can provide to me. Thank you so much for your time and assistance, and I look forward to hearing from you.
+
+Sincerely,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-expressive',
+        name: 'The Expressive Application',
+        displayName: 'The Expressive Application',
+        subject: 'Eager to Join {{COMPANY_NAME}} as {{JOB_TITLE}}',
+        body: `Dear Hiring Team,
+
+I trust you are doing well.
+
+I am {{USER_FIRSTNAME}}, and I wanted to express my strong interest in the {{JOB_TITLE}} role at {{COMPANY_NAME}}. The prospect of contributing to {{COMPANY_NAME}}'s success is incredibly exciting to me.
+
+Attached is my resume, which outlines my experience in the required skills related to the {{JOB_TITLE}}. I am confident in my ability to make an immediate impact on your team and would love the opportunity to discuss my qualifications further.
+
+Thank you for considering my application. I look forward to the possibility of discussing my candidacy in greater detail.
+
+Warm regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-present-yourself',
+        name: 'Present yourself',
+        displayName: 'Present yourself',
+        subject: 'Interested to learn more!',
+        body: `Hello,
+
+I came across your job posted here: {{JOB_URL}} regarding an opportunity in {{JOB_LOCATION}}.
+
+I am interested in applying for the position of {{JOB_TITLE}} at {{COMPANY_NAME}}.
+
+After reading the job description and requirements and matching it with my own experiences, I know that it fits great with my profile. I have attached my resume for your consideration.
+
+Please take a moment to go through it to get a better picture of who I am. I would love to talk to you in more detail regarding this opportunity.
+
+Sincerely,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    // New Templates Added Below
+     {
+        id: 'tpl-recognition',
+        name: 'The Recognition of Company Achievements',
+        displayName: 'The Recognition of Company Achievements',
+        subject: 'Impressed by {{COMPANY_NAME}} Achievements',
+        body: `Dear Hiring Team,
+
+I hope this email finds you well.
+
+I recently did my own research for {{COMPANY_NAME}}. Congratulations on the remarkable accomplishments you managed to achieve! It further solidifies my admiration for your team and your commitment to excellence.
+
+In light of this, I am even more excited about the opportunity to potentially contribute to {{COMPANY_NAME}}. I have attached my resume for your consideration and would welcome the chance to discuss my application further.
+
+Thank you for your time and congratulations again on the recent success.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-unique-skill',
+        name: 'The Unique Skill Highlight',
+        displayName: 'The Unique Skill Highlight',
+        subject: 'Elevating {{JOB_TITLE}} with Specialized Skills',
+        body: `Dear Hiring Team,
+
+I hope this message finds you in good spirits.
+
+My name is {{USER_FIRSTNAME}}, and I'm excited to submit my application for the {{JOB_TITLE}} position at {{COMPANY_NAME}}. With my specialized skills and experience in this industry, I am confident in my ability to bring a fresh perspective and make a meaningful impact on your company.
+
+Attached is my resume for your review. I look forward to the possibility of discussing how my unique skills align with {{COMPANY_NAME}}'s goals.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-problem-solver',
+        name: 'The Problem Solver',
+        displayName: 'The Problem Solver',
+        subject: 'Solving Challenges as Your {{JOB_TITLE}}',
+        body: `Dear Hiring Team,
+
+I hope this email reaches you in good health.
+
+I'm {{USER_FIRSTNAME}}, and I'm eager to apply for the {{JOB_TITLE}} position at {{COMPANY_NAME}}. With a proven track record in tackling challenges related to the context of the job description, I am confident in my ability to contribute innovative solutions to your team.
+
+Attached is my resume for your review. I would welcome the opportunity to discuss how my problem-solving skills can benefit {{COMPANY_NAME}}.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-short-sweet',
+        name: 'The Short and Sweet Application',
+        displayName: 'The Short and Sweet Application',
+        subject: 'Application for {{JOB_TITLE}}',
+        body: `Dear Hiring Team,
+
+I am writing to apply for the {{JOB_TITLE}} position at {{COMPANY_NAME}}. You may find my resume attached for further information on my candidacy.
+
+I am thrilled about the opportunity to contribute to your team, and I would welcome your availability to further discuss this.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-ask-opportunities-popular', // Added as popular, distinct ID
+        name: 'Ask for opportunities',
+        displayName: 'Ask for opportunities (Popular)', // Clarified name
+        subject: 'Opportunities',
+        body: `Hello,
+
+I checked your website and social profiles recently, and I came across your job posting regarding the {{JOB_TITLE}} opening at {{JOB_LOCATION}}. I am interested in applying my knowledge in a real project at {{COMPANY_NAME}} where I believe I will also be able to learn many new things! For this reason, I'd like to find out if you have opportunities related to my profile.
+
+I have attached my resume to let you learn more about me.
+
+I would love to talk to you in more detail. Let me know your availability in the coming weeks.
+
+Thanks,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-formal-interest',
+        name: 'The Formal Expression of Interest',
+        displayName: 'The Formal Expression of Interest',
+        subject: 'Formal Application for {{JOB_TITLE}}',
+        body: `Dear Hiring Team,
+
+I trust this email finds you in good health.
+
+I am writing to formally express my interest in the {{JOB_TITLE}} position at {{COMPANY_NAME}}. Enclosed is my resume, providing a comprehensive overview of my professional background and achievements.
+
+I am eager to contribute my skills to {{COMPANY_NAME}}, and would appreciate the opportunity to discuss how my qualifications align with the goals of your organization.
+
+Thank you for considering my application.
+
+Sincerely,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-straightforward',
+        name: 'The Straightforward Application',
+        displayName: 'The Straightforward Application',
+        subject: 'Application for {{JOB_TITLE}}',
+        body: `Dear Hiring Team,
+
+I hope this message finds you in good health.
+
+I am {{USER_FIRSTNAME}}, and I am writing to apply for the {{JOB_TITLE}} position at {{COMPANY_NAME}}, which I found through your website.
+
+I have attached my resume and a brief cover letter highlighting my qualifications. With much work experience as well as many tested skills in this field, I am confident in my ability to thrive in this job role and contribute to {{COMPANY_NAME}}'s goals and success.
+
+I would greatly appreciate the opportunity to discuss how my professional profile aligns with your requirements.
+
+Thank you for considering my application.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-intro-twist',
+        name: 'The Introduction with a Twist',
+        displayName: 'The Introduction with a Twist',
+        subject: 'Unveiling My Potential for {{JOB_TITLE}} Role',
+        body: `Dear Hiring Team,
+
+I trust this email finds you well.
+
+I'm {{USER_FIRSTNAME}}, and I couldn't resist the opportunity to explore the potential alignment of my skills with the {{JOB_TITLE}} position at {{COMPANY_NAME}}. I've attached my resume, and I'm eager to discuss how my unique approach aligned with the job description could contribute to your company’s success.
+
+Thank you for considering my application.
+
+Best,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-unique-value',
+        name: 'The Unique Value Proposition',
+        displayName: 'The Unique Value Proposition',
+        subject: 'Bringing Exceptional Skills to {{COMPANY_NAME}}',
+        body: `Dear Hiring Team,
+
+I trust this email finds you well.
+
+I am reaching out to express my interest in the {{JOB_TITLE}} position at {{COMPANY_NAME}}. With a strong background in this industry, I am confident in my ability to bring a unique and valuable perspective to your team.
+
+Enclosed is my resume for your consideration, and I would welcome the opportunity to discuss how my skills align with your organization's goals.
+
+Thank you for considering my application.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-ask-regarding-open', // Different from tpl-ask-open
+        name: 'Ask regarding open position',
+        displayName: 'Ask regarding open position',
+        subject: 'Quick question',
+        body: `Hello,
+
+I would like to ask regarding a position I found here: {{JOB_URL}}.
+
+Is the position of {{JOB_TITLE}} still open or did you already find someone?
+
+I like {{JOB_LOCATION}} a lot, so I would be very interested to discuss more this opportunity in more detail at {{COMPANY_NAME}}.
+
+You can find my cv attached. Let me know if you need any other detail.
+
+I would love to talk to you soon.
+
+Thanks,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-visionary',
+        name: 'The Visionary',
+        displayName: 'The Visionary',
+        subject: 'Envisioning Success in the {{JOB_TITLE}} Role',
+        body: `Dear Hiring Team,
+
+I hope this email finds you in good health.
+
+As a forward-thinking professional in this field, I am reaching out to express my keen interest in the {{JOB_TITLE}} position at {{COMPANY_NAME}}. In envisioning the impact I could make within your team, I am inspired by the innovative projects and solutions that {{COMPANY_NAME}} is known for.
+
+I've attached my resume, and I would love the opportunity to discuss how my vision aligns with the future goals of {{COMPANY_NAME}}.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-present-yourself-2',
+        name: 'Present yourself 2',
+        displayName: 'Present yourself 2',
+        subject: 'Looking to join the team',
+        body: `Hello {{COMPANY_NAME}} hiring team,
+
+My name is {{USER_FIRSTNAME}}, and I noticed that {{COMPANY_NAME}} is looking for someone to deliver sustainable outcomes as the next {{JOB_TITLE}}. After reviewing the specific role details on {{JOB_URL}}, I recognize that my skills directly align with the expectations of this role.
+
+Throughout my career, I have consistently leveraged my skills and expertise to thrive in my assigned responsibilities. I am excited about the opportunity to bring these skills to your organization and to be a part of a team that fosters collaboration to make a positive impact in the industry. I would truly value an opportunity to discuss this role, as I am not only very interested in the position, but I truly aspire to join an organization with such an amazing culture and mission.
+
+Thank you for considering my application. I look forward to the opportunity to speak with you regarding this rewarding opportunity.
+
+Respectfully submitted,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-casual-inquiry',
+        name: 'The Casual Inquiry',
+        displayName: 'The Casual Inquiry',
+        subject: 'Quick Question about {{JOB_TITLE}} Position',
+        body: `Hello Hiring Team,
+
+Hope you're having a good day.
+
+I came across the {{JOB_TITLE}} position at {{COMPANY_NAME}} and wanted to reach out with a quick question. Could you share a bit more about the day-to-day responsibilities of the role?
+
+Thanks a bunch!
+
+Best,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-exploring',
+        name: 'Exploring Opportunities',
+        displayName: 'Exploring Opportunities',
+        subject: 'Exploring Opportunities at {{COMPANY_NAME}}',
+        body: `Dear Hiring Team,
+
+I trust this email finds you well.
+
+I am {{USER_FIRSTNAME}}, and I am reaching out to express my interest in potential opportunities at {{COMPANY_NAME}}. With my background in this industry, I am confident in my ability to bring valuable insights and contribute to your team's success.
+
+I have attached my resume for your consideration and would welcome the chance to discuss how my skills align with the goals of {{COMPANY_NAME}}.
+
+Thank you for your time, and I look forward to the possibility of connecting.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-talk-event',
+        name: 'Talk about that event',
+        displayName: 'Talk about that event',
+        subject: 'Hi, it\'s {{USER_FIRSTNAME}}',
+        body: `I checked your website and your social media, and I really like what {{COMPANY_NAME}} does.
+
+I also found this job posting: {{JOB_URL}}. Is the position still open?
+
+I would be very interested to work as a {{JOB_TITLE}} in {{JOB_LOCATION}}. I already have offers in similar positions, so I am currently evaluating them in order to decide my next steps.
+
+You can find my cv attached (if you need any other document or details about my experience let me know).
+
+Feel free to contact me to arrange a skype call to discuss more.
+
+Thanks,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-enthusiastic',
+        name: 'The Enthusiastic Application',
+        displayName: 'The Enthusiastic Application',
+        subject: 'Enthusiastically Applying for {{JOB_TITLE}} Position',
+        body: `Dear Hiring Team,
+
+I trust this email finds you well.
+
+I am writing to express my genuine enthusiasm for the {{JOB_TITLE}} position at {{COMPANY_NAME}}. The prospect of contributing to your team is truly exciting, and I believe my background in this industry makes me a strong fit for the role.
+
+Attached is my resume for your consideration. I look forward to the opportunity to discuss how my enthusiasm aligns with {{COMPANY_NAME}}'s mission.
+
+Best regards,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
+    {
+        id: 'tpl-standard',
+        name: 'The Standard Application',
+        displayName: 'The Standard Application',
+        subject: 'Letter of Interest for {{JOB_TITLE}}',
+        body: `Dear Hiring Team,
+
+I hope this email finds you well.
+
+I am {{USER_FIRSTNAME}} and I am writing to express my strong interest in the {{JOB_TITLE}} position at {{COMPANY_NAME}} as advertised on {{JOB_URL}}.
+
+I have attached my resume for your consideration. Having carefully read the job description, I believe my skills, experience and academic background in combination with my strong interest in this field make me a qualified candidate for this role. I am excited about the opportunity to contribute to {{COMPANY_NAME}}'s success and would welcome the chance to discuss how my qualifications align with your requirements.
+
+Thank you for considering my application. I look forward to the possibility of discussing my candidacy in greater detail.
+
+Sincerely,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`
+    },
 ];
 
+// Update 'myTemplates' based on user input
 const myTemplates: EmailTemplate[] = [
-     { id: 'tpl-ask-opportunities', name: 'Ask for opportunities', displayName: 'Ask for opportunities', subject: 'Inquiry about Opportunities at {{COMPANY_NAME}}', body: 'Dear Hiring Team at {{COMPANY_NAME}},\n\nI am writing to express my interest in potential future opportunities within your organization. My skills in [mention key skills] and experience in [mention relevant field] might be a good fit for your needs.\n\nI have attached my resume for your consideration.\n\nBest regards,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}', isUserTemplate: true },
+     {
+        id: 'tpl-ask-opportunities',
+        name: 'Ask for opportunities', // Internal name
+        displayName: 'Ask for opportunities', // Display name
+        subject: 'Opportunities', // Updated subject
+        body: `Hello,
+
+I checked your website and social profiles recently, and I came across your job posting regarding the {{JOB_TITLE}} opening at {{JOB_LOCATION}}. I am interested in applying my knowledge in a real project at {{COMPANY_NAME}} where I believe I will also be able to learn many new things! For this reason, I'd like to find out if you have opportunities related to my profile.
+
+I have attached my resume to let you learn more about me.
+
+I would love to talk to you in more detail. Let me know your availability in the coming weeks.
+
+Thanks,
+{{USER_FIRSTNAME}} {{USER_LASTNAME}}`,
+        isUserTemplate: true
+     },
 ];
 
 // Simple Stepper Component
@@ -864,3 +1239,5 @@ export default function AutoApplyPage() {
     </div>
   );
 }
+
+    
