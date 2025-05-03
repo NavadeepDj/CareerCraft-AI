@@ -5,10 +5,12 @@ import React, { useState, useCallback, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info } from 'lucide-react';
+import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info, BarChart, Check } from 'lucide-react';
 import LoadingSpinner from '@/components/loading-spinner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea'; // Import Textarea
+import { ScrollArea } from '@/components/ui/scroll-area'; // Import ScrollArea
 import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -35,7 +37,29 @@ interface AppliedJob {
 
 // Add 'statistics' view state and update stepper state
 type ViewState = 'statistics' | 'configure' | 'applying' | 'results' | 'error';
-type ConfigureStep = 'searchInfo' | 'emailTemplate' | 'settings' | 'review'; // For future steps
+// Add email template step
+type ConfigureStep = 'searchInfo' | 'emailTemplate' | 'settings' | 'review';
+
+// Placeholder Email Template Data
+interface EmailTemplate {
+    id: string;
+    name: string; // Internal name
+    displayName: string; // Name shown in the list
+    subject: string;
+    body: string;
+    isUserTemplate?: boolean; // Flag for user-created templates
+}
+
+const popularTemplates: EmailTemplate[] = [
+    { id: 'tpl-forward-thinking', name: 'The Forward-Thinking Application', displayName: 'The Forward-Thinking Application', subject: 'Forward-Thinking Approach to {{JOB_TITLE}}', body: 'Dear Hiring Team,\n\nI hope this message finds you in good health.\n\nI am writing to express my interest in the {{JOB_TITLE}} position at {{COMPANY_NAME}}. Known for my forward-thinking approach in this field, I am confident in my ability to bring innovative ideas and contribute to your team\'s success.\n\nAttached is my resume for your consideration. I would welcome the opportunity to discuss how my forward-thinking mindset aligns with {{COMPANY_NAME}}\'s vision.\n\nBest regards,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}' },
+    { id: 'tpl-ask-open', name: 'Ask regarding open position 2', displayName: 'Ask regarding open position 2', subject: 'Inquiry Regarding Open Position - {{JOB_TITLE}}', body: 'Dear Hiring Manager,\n\nI am writing to inquire about the open {{JOB_TITLE}} position I saw advertised on [Platform where you saw the job].\n\nMy background in [mention relevant skills/experience] aligns well with the requirements listed. I am eager to learn more about this opportunity and how I can contribute to {{COMPANY_NAME}}.\n\nThank you for your time and consideration.\n\nSincerely,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}' },
+    { id: 'tpl-expressive', name: 'The Expressive Application', displayName: 'The Expressive Application', subject: 'Passionate Application for {{JOB_TITLE}} at {{COMPANY_NAME}}', body: 'Dear [Hiring Manager Name, if known, otherwise Hiring Team],\n\nI was thrilled to see the opening for the {{JOB_TITLE}} position at {{COMPANY_NAME}}. My passion for [relevant field/skill] and my experience in [key achievement or skill] make me confident I can make a significant impact.\n\nI\'ve attached my resume detailing my qualifications. I am excited about the possibility of joining your team and contributing to your success.\n\nWarm regards,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}' },
+    { id: 'tpl-present-yourself', name: 'Present yourself', displayName: 'Present yourself', subject: 'Introduction and Interest in {{COMPANY_NAME}}', body: 'Dear Hiring Team,\n\nMy name is {{USER_FIRSTNAME}} {{USER_LASTNAME}}, and I am writing to introduce myself and express my strong interest in potential opportunities at {{COMPANY_NAME}}.\n\nWith a background in [mention your field] and skills including [mention 1-2 key skills], I believe I could be a valuable asset to your team.\n\nI have attached my resume for your review and would appreciate the chance to discuss how my qualifications align with your needs.\n\nThank you,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}' },
+];
+
+const myTemplates: EmailTemplate[] = [
+     { id: 'tpl-ask-opportunities', name: 'Ask for opportunities', displayName: 'Ask for opportunities', subject: 'Inquiry about Opportunities at {{COMPANY_NAME}}', body: 'Dear Hiring Team at {{COMPANY_NAME}},\n\nI am writing to express my interest in potential future opportunities within your organization. My skills in [mention key skills] and experience in [mention relevant field] might be a good fit for your needs.\n\nI have attached my resume for your consideration.\n\nBest regards,\n{{USER_FIRSTNAME}} {{USER_LASTNAME}}', isUserTemplate: true },
+];
 
 // Simple Stepper Component
 const Stepper: React.FC<{ currentStep: ConfigureStep }> = ({ currentStep }) => {
@@ -125,7 +149,7 @@ export default function AutoApplyPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [resumeDataUri, setResumeDataUri] = useState<string | null>(null); // Store as Data URI if needed by potential future API
 
-  // New state variables based on the LoopCV form
+  // State variables for Step 1 (Search Info)
   const [jobTitles, setJobTitles] = useState<string>('');
   const [jobLocation, setJobLocation] = useState<string>('');
   const [searchOnlyRemote, setSearchOnlyRemote] = useState<boolean>(false);
@@ -135,8 +159,29 @@ export default function AutoApplyPage() {
   const [experienceLevel, setExperienceLevel] = useState<string>('');
   const [jobType, setJobType] = useState<string>('');
 
+  // State variables for Step 2 (Email Template)
+  const [allTemplates, setAllTemplates] = useState<EmailTemplate[]>([...popularTemplates, ...myTemplates]);
+  const [selectedEmailTemplateId, setSelectedEmailTemplateId] = useState<string>(popularTemplates[0]?.id || ''); // Default to first popular
+  const [emailTemplateName, setEmailTemplateName] = useState<string>(popularTemplates[0]?.name || '');
+  const [emailSubject, setEmailSubject] = useState<string>(popularTemplates[0]?.subject || '');
+  const [emailBody, setEmailBody] = useState<string>(popularTemplates[0]?.body || '');
+  const [testEmailRecipient, setTestEmailRecipient] = useState<string>('sujithgopi740@gmail.com'); // Default from image
+
+
   const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
+
+   // Select an email template
+  const handleSelectTemplate = (templateId: string) => {
+    const selected = allTemplates.find(t => t.id === templateId);
+    if (selected) {
+        setSelectedEmailTemplateId(selected.id);
+        setEmailTemplateName(selected.name); // Use internal name for the input field
+        setEmailSubject(selected.subject);
+        setEmailBody(selected.body);
+    }
+  };
+
 
   // Handle file selection or drop
   const handleFileChange = useCallback((file: File | null) => {
@@ -183,46 +228,84 @@ export default function AutoApplyPage() {
       handleFileChange(file || null);
   };
 
-  // Input change handlers
+  // --- Input change handlers ---
+  // Step 1
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => handleFileChange(e.target.files?.[0] || null);
   const onJobTitlesChange = (e: ChangeEvent<HTMLInputElement>) => setJobTitles(e.target.value);
   const onJobLocationChange = (e: ChangeEvent<HTMLInputElement>) => setJobLocation(e.target.value);
-  // Handlers for Select components
   const onSearchJobBoardsChange = (value: string) => setSearchJobBoards(value);
   const onExperienceLevelChange = (value: string) => setExperienceLevel(value);
   const onJobTypeChange = (value: string) => setJobType(value);
-  // Handlers for Checkbox components (need `checked` state from event or directly)
-  // Radix Checkbox onCheckedChange provides boolean | "indeterminate"
   const onSearchOnlyRemoteChange = (checked: boolean | 'indeterminate') => setSearchOnlyRemote(Boolean(checked));
   const onSearchRemoteAnywhereChange = (checked: boolean | 'indeterminate') => setSearchRemoteAnywhere(Boolean(checked));
   const onEnableCareerPageSearchChange = (checked: boolean | 'indeterminate') => setEnableCareerPageSearch(Boolean(checked));
 
+  // Step 2
+  const onEmailTemplateNameChange = (e: ChangeEvent<HTMLInputElement>) => setEmailTemplateName(e.target.value);
+  const onEmailSubjectChange = (e: ChangeEvent<HTMLInputElement>) => setEmailSubject(e.target.value);
+  const onEmailBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setEmailBody(e.target.value);
+  const onTestEmailRecipientChange = (e: ChangeEvent<HTMLInputElement>) => setTestEmailRecipient(e.target.value);
+  // Placeholder for creating a new template
+  const handleCreateTemplate = () => {
+      toast({ title: "Create Template (Placeholder)", description: "Functionality to create a new template is not yet implemented." });
+      // In a real app: Clear fields, set isUserTemplate, generate new ID, maybe open a modal?
+  };
+  // Placeholder for sending test email
+  const handleSendTestEmail = () => {
+      if (!testEmailRecipient) {
+          toast({ title: "Missing Recipient", description: "Please enter an email address to send the test to.", variant: "destructive" });
+          return;
+      }
+       toast({ title: "Send Test Email (Simulation)", description: `Simulating sending test email to ${testEmailRecipient} using template '${emailTemplateName}'.` });
+       // Actual implementation would involve a backend service.
+  };
+  // Placeholder for saving changes to template (if editable)
+  const handleSaveChanges = () => {
+       toast({ title: "Save Changes (Placeholder)", description: `Simulating saving changes to template '${emailTemplateName}'.` });
+       // In a real app: Update the template in state/backend if it's a user template
+       // Maybe move to the next step after saving
+       setConfigureStep('settings');
+  };
+
+
+  // --- Navigation and Actions ---
 
   // Handle starting the auto-apply process (simulation) - renamed to "Save and Run"
   const handleSaveAndRun = async () => {
-    // Validate required fields from Step 1
+    // ** Run Validations for ALL required steps before simulation **
+    // Step 1 Validation
     if (!jobTitles.trim()) {
+      setConfigureStep('searchInfo');
       toast({ title: "Missing Job Titles", description: "Please specify the desired job titles.", variant: "destructive" });
       return;
     }
-    // Job Location might be optional depending on remote settings, add validation if needed
     if (!jobLocation.trim() && !searchOnlyRemote) {
+       setConfigureStep('searchInfo');
        toast({ title: "Missing Job Location", description: "Please specify a location or select 'Search only for remote jobs'.", variant: "destructive" });
        return;
     }
     if (!uploadedFile) {
+      setConfigureStep('searchInfo');
       toast({ title: "Missing Resume", description: "Please upload your resume (CV).", variant: "destructive" });
       return;
     }
-    // Add checks for experience level and job type if they are mandatory
      if (!experienceLevel) {
+       setConfigureStep('searchInfo');
        toast({ title: "Missing Experience Level", description: "Please select your experience level.", variant: "destructive" });
        return;
      }
      if (!jobType) {
+       setConfigureStep('searchInfo');
        toast({ title: "Missing Job Type", description: "Please select the desired job type.", variant: "destructive" });
        return;
      }
+     // Step 2 Validation (Basic)
+     if (!emailTemplateName.trim() || !emailSubject.trim() || !emailBody.trim()) {
+          setConfigureStep('emailTemplate');
+          toast({ title: "Incomplete Email Template", description: "Please ensure the email template has a name, subject, and body.", variant: "destructive" });
+          return;
+     }
+     // TODO: Add validation for Step 3 and Step 4 if/when implemented
 
 
     setViewState('applying');
@@ -235,7 +318,8 @@ export default function AutoApplyPage() {
       console.log("Configuration:", {
           jobTitles, jobLocation, searchOnlyRemote, searchRemoteAnywhere,
           searchJobBoards, enableCareerPageSearch, experienceLevel, jobType,
-          resume: uploadedFile?.name
+          resume: uploadedFile?.name,
+          emailTemplate: { name: emailTemplateName, subject: emailSubject }
       });
 
       // Simulate API call delay and application process
@@ -253,10 +337,8 @@ export default function AutoApplyPage() {
        // Simulate some errors randomly
       const results = dummyJobs.map(job => ({
           ...job,
-          // Randomly mark some as error for demonstration
           status: (Math.random() > 0.8 && job.status === 'Applied') ? 'Error Applying' : job.status
       }));
-
 
       setAppliedJobs(results);
       setViewState('results');
@@ -271,14 +353,41 @@ export default function AutoApplyPage() {
     }
   };
 
-  // Placeholder for navigating to the next step (Email Template, Settings, etc.)
+   // Navigate between configuration steps
   const handleNextStep = () => {
-      // Logic to move to the next step (e.g., setConfigureStep('emailTemplate'))
-      // For now, it can also just trigger the simulation like Save and Run
-       toast({ title: "Next Step (Placeholder)", description: "This would normally proceed to Email Template configuration."});
-       // Or trigger simulation:
-       // handleSaveAndRun();
-  }
+    // Validate current step before moving to next
+    if (configureStep === 'searchInfo') {
+        if (!jobTitles.trim()) { toast({ title: "Missing Job Titles", variant: "destructive" }); return; }
+        if (!jobLocation.trim() && !searchOnlyRemote) { toast({ title: "Missing Job Location", variant: "destructive" }); return; }
+        if (!uploadedFile) { toast({ title: "Missing Resume", variant: "destructive" }); return; }
+        if (!experienceLevel) { toast({ title: "Missing Experience Level", variant: "destructive" }); return; }
+        if (!jobType) { toast({ title: "Missing Job Type", variant: "destructive" }); return; }
+        setConfigureStep('emailTemplate');
+    } else if (configureStep === 'emailTemplate') {
+         if (!emailTemplateName.trim() || !emailSubject.trim() || !emailBody.trim()) {
+             toast({ title: "Incomplete Email Template", description: "Please ensure the template has name, subject, and body.", variant: "destructive"});
+             return;
+         }
+        setConfigureStep('settings');
+    } else if (configureStep === 'settings') {
+        // Add validation for settings if needed
+        setConfigureStep('review');
+    } else if (configureStep === 'review') {
+        // Review step is the last step before running
+        handleSaveAndRun(); // Trigger simulation from review step's "Next"
+    }
+  };
+
+   const handlePreviousStep = () => {
+     if (configureStep === 'emailTemplate') {
+        setConfigureStep('searchInfo');
+     } else if (configureStep === 'settings') {
+        setConfigureStep('emailTemplate');
+     } else if (configureStep === 'review') {
+         setConfigureStep('settings');
+     }
+     // If on 'searchInfo', the back button goes to 'statistics'
+   };
 
 
   // Function to switch to configuration view
@@ -296,7 +405,7 @@ export default function AutoApplyPage() {
 
          case 'configure':
             return (
-                 <Card className="shadow-lg">
+                 <Card className="shadow-lg max-w-5xl mx-auto"> {/* Increased max-width */}
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-xl">
                             Let's create a new Loop
@@ -319,12 +428,11 @@ export default function AutoApplyPage() {
                         <Stepper currentStep={configureStep} />
                     </CardHeader>
 
-                    {/* Only show content for the current step */}
+                    {/* --- Step 1: Search Info --- */}
                     {configureStep === 'searchInfo' && (
                          <CardContent className="space-y-6 border-t pt-6">
-                            <h3 className="font-semibold text-lg mb-4">Complete your desired job info and location</h3>
-
-                            {/* Job Titles */}
+                            <h3 className="font-semibold text-lg mb-4">1. Complete your desired job info and location</h3>
+                             {/* Job Titles */}
                              <div className="space-y-1">
                                 <Label htmlFor="jobTitles">Job Titles <span className="text-destructive">*</span></Label>
                                 <Input
@@ -336,8 +444,7 @@ export default function AutoApplyPage() {
                                 />
                                 <p className="text-xs text-muted-foreground">This job title will be used to search for jobs around the web. Separate multiple titles with commas.</p>
                             </div>
-
-                            {/* Job Location */}
+                             {/* Job Location */}
                             <div className="space-y-1">
                                 <Label htmlFor="jobLocation">Job Location</Label>
                                 <Input
@@ -349,7 +456,6 @@ export default function AutoApplyPage() {
                                 />
                                 {!searchOnlyRemote && <p className="text-xs text-muted-foreground">Specify city, state, country, or "Remote".</p>}
                             </div>
-
                             {/* Checkboxes */}
                              <div className="space-y-4">
                                 <div className="flex items-center space-x-2">
@@ -375,8 +481,7 @@ export default function AutoApplyPage() {
                                    </Label>
                                  </div>
                              </div>
-
-                             {/* Search Job Boards */}
+                            {/* Search Job Boards */}
                              <div className="space-y-1">
                                 <Label htmlFor="searchJobBoards">Search in Specific Job Boards</Label>
                                 <Select value={searchJobBoards} onValueChange={onSearchJobBoardsChange}>
@@ -394,8 +499,7 @@ export default function AutoApplyPage() {
                                 </Select>
                                 <p className="text-xs text-muted-foreground">Choose specific platforms if you want to narrow your search. Leave it blank to allow all platforms for your profile.</p>
                              </div>
-
-                             {/* Enable Career Page Search */}
+                              {/* Enable Career Page Search */}
                               <div className="flex items-center space-x-2 opacity-50 cursor-not-allowed"> {/* Simulate disabled premium feature */}
                                  <Checkbox
                                      id="enableCareerPageSearch"
@@ -408,7 +512,6 @@ export default function AutoApplyPage() {
                                      <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">PREMIUM MEMBERS ONLY</Badge>
                                  </Label>
                               </div>
-
                              {/* Experience and Job Type */}
                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                   <div className="space-y-1">
@@ -443,14 +546,13 @@ export default function AutoApplyPage() {
                                       </Select>
                                   </div>
                              </div>
-
-
                             {/* File Upload Area */}
                              <div className="space-y-2">
                                 <Label>Upload your CV (résumé) <span className="text-destructive">*</span></Label>
-                                 {/* Message explaining importance */}
-                                <div className="p-4 bg-secondary rounded-md border border-input text-sm text-muted-foreground">
-                                    <p className="font-medium text-foreground mb-2">NO CVS UPLOADED YET</p>
+                                 <div className="p-4 bg-secondary rounded-md border border-input text-sm text-muted-foreground">
+                                    <p className="font-medium text-foreground mb-2">
+                                        {uploadedFile ? `CURRENTLY SELECTED: ${uploadedFile.name}` : "NO CVS UPLOADED YET"}
+                                    </p>
                                     To get the most out of our platform, uploading your CV is important. Here's why:
                                     <ul className="list-disc pl-5 mt-1 space-y-0.5">
                                         <li><strong>Automate your applications</strong> by having your CV automatically attached to emails sent to companies.</li>
@@ -484,7 +586,6 @@ export default function AutoApplyPage() {
                                     />
                                   </div>
                              </div>
-
                              {/* Simulation Notice */}
                              <Alert variant="default" className="bg-secondary border-primary/20">
                                <Bot className="h-4 w-4" />
@@ -493,42 +594,173 @@ export default function AutoApplyPage() {
                                  This feature simulates the job application process. It **will not actually submit applications** on external websites.
                                </AlertDescription>
                              </Alert>
-
                          </CardContent>
                      )}
 
-                     {/* Placeholder for other steps */}
-                     {configureStep !== 'searchInfo' && (
+                     {/* --- Step 2: Email Template --- */}
+                     {configureStep === 'emailTemplate' && (
+                         <CardContent className="space-y-6 border-t pt-6">
+                             <h3 className="font-semibold text-lg mb-4">2. Select or create a unique email template</h3>
+                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                 {/* Left: Template List */}
+                                 <div className="md:col-span-1 space-y-4">
+                                     <div>
+                                         <h4 className="font-medium mb-2 text-sm text-muted-foreground">Popular templates</h4>
+                                         <ScrollArea className="h-48 border rounded-md">
+                                            <div className="p-2 space-y-1">
+                                                {allTemplates.filter(t => !t.isUserTemplate).map(template => (
+                                                    <Button
+                                                        key={template.id}
+                                                        variant="ghost"
+                                                        className={cn(
+                                                            "w-full justify-start h-auto py-2 px-3 text-left",
+                                                            selectedEmailTemplateId === template.id && "bg-secondary font-semibold"
+                                                        )}
+                                                        onClick={() => handleSelectTemplate(template.id)}
+                                                    >
+                                                        {template.displayName}
+                                                        {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary" />}
+                                                    </Button>
+                                                ))}
+                                             </div>
+                                         </ScrollArea>
+                                     </div>
+                                     <div>
+                                         <h4 className="font-medium mb-2 text-sm text-muted-foreground">My templates</h4>
+                                         <ScrollArea className="h-32 border rounded-md">
+                                             <div className="p-2 space-y-1">
+                                                 {allTemplates.filter(t => t.isUserTemplate).map(template => (
+                                                     <Button
+                                                        key={template.id}
+                                                        variant="ghost"
+                                                        className={cn(
+                                                            "w-full justify-start h-auto py-2 px-3 text-left",
+                                                            selectedEmailTemplateId === template.id && "bg-secondary font-semibold"
+                                                        )}
+                                                        onClick={() => handleSelectTemplate(template.id)}
+                                                    >
+                                                         {template.displayName}
+                                                         {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary" />}
+                                                    </Button>
+                                                 ))}
+                                                {allTemplates.filter(t => t.isUserTemplate).length === 0 && (
+                                                     <p className="p-4 text-center text-xs text-muted-foreground">No custom templates created yet.</p>
+                                                )}
+                                            </div>
+                                         </ScrollArea>
+                                          <Button variant="outline" className="w-full mt-2" onClick={handleCreateTemplate}>
+                                            CREATE YOUR TEMPLATE
+                                         </Button>
+                                     </div>
+                                 </div>
+
+                                 {/* Right: Template Editor */}
+                                 <div className="md:col-span-2 space-y-4">
+                                     <div className="space-y-1">
+                                         <Label htmlFor="emailTemplateName">Email template name <span className="text-xs text-muted-foreground">(this is just an identifier)</span></Label>
+                                         <Input
+                                             id="emailTemplateName"
+                                             value={emailTemplateName}
+                                             onChange={onEmailTemplateNameChange}
+                                             placeholder="e.g., My Standard Application"
+                                             required
+                                         />
+                                     </div>
+                                      <div className="space-y-1">
+                                         <Label htmlFor="emailSubject">Email subject</Label>
+                                         <Input
+                                             id="emailSubject"
+                                             value={emailSubject}
+                                             onChange={onEmailSubjectChange}
+                                             placeholder="e.g., Application for {{JOB_TITLE}}"
+                                             required
+                                         />
+                                     </div>
+                                      <div className="space-y-1">
+                                         <Label htmlFor="emailBody">Email body</Label>
+                                         <Textarea
+                                             id="emailBody"
+                                             value={emailBody}
+                                             onChange={onEmailBodyChange}
+                                             placeholder="Write your email content here. Use placeholders like {{JOB_TITLE}}, {{COMPANY_NAME}}, etc."
+                                             rows={10}
+                                             required
+                                             className="min-h-[200px]"
+                                         />
+                                         <p className="text-xs text-muted-foreground">Hint: type {'{{'} to show the suggestions list (feature not implemented). NOTE: We will attach your CV to this email.</p>
+                                     </div>
+                                     <Button onClick={handleSaveChanges} variant="default" className="bg-green-600 hover:bg-green-700 text-white">SAVE</Button> {/* Match style from image */}
+
+                                     {/* Send Test Email Section */}
+                                     <div className="border-t pt-4 mt-4 space-y-2">
+                                         <h4 className="font-medium">Send a test email</h4>
+                                         <p className="text-sm text-muted-foreground">This is the email a company will receive once your criteria match the job posting.</p>
+                                          <div className="flex items-center gap-2">
+                                             <Input
+                                                 id="testEmailRecipient"
+                                                 type="email"
+                                                 value={testEmailRecipient}
+                                                 onChange={onTestEmailRecipientChange}
+                                                 placeholder="your-email@example.com"
+                                                 className="flex-grow"
+                                             />
+                                              <Button variant="secondary" onClick={handleSendTestEmail}>
+                                                SEND TEST EMAIL
+                                            </Button>
+                                          </div>
+                                     </div>
+                                 </div>
+                            </div>
+                         </CardContent>
+                     )}
+
+
+                     {/* --- Step 3: Settings (Placeholder) --- */}
+                     {configureStep === 'settings' && (
                          <CardContent className="min-h-[200px] flex items-center justify-center border-t pt-6">
-                             <p className="text-muted-foreground">Configuration for {configureStep} step (Not Implemented)</p>
+                             <p className="text-muted-foreground">3. Settings Configuration (Not Implemented)</p>
+                         </CardContent>
+                     )}
+
+                     {/* --- Step 4: Review (Placeholder) --- */}
+                     {configureStep === 'review' && (
+                         <CardContent className="min-h-[200px] flex items-center justify-center border-t pt-6">
+                              <p className="text-muted-foreground">4. Review Your Configuration (Not Implemented)</p>
                          </CardContent>
                      )}
 
                     <CardFooter className="flex justify-between border-t pt-6 mt-6">
-                         {/* Back Button - Only show if not on first step, or provide back to stats */}
-                         {configureStep !== 'searchInfo' ? (
-                             <Button variant="outline" onClick={() => setConfigureStep('searchInfo')}> {/* Go back to prev step */}
-                                <ArrowLeft className="mr-2 h-4 w-4" /> Back
-                            </Button>
-                         ) : (
+                         {/* Back Button */}
+                         {configureStep === 'searchInfo' ? (
                             <Button variant="outline" onClick={() => setViewState('statistics')}>
                                 <ArrowLeft className="mr-2 h-4 w-4" /> Back to Stats
+                            </Button>
+                         ) : (
+                            <Button variant="outline" onClick={handlePreviousStep}>
+                                <ArrowLeft className="mr-2 h-4 w-4" /> Back
                             </Button>
                          )}
 
                          {/* Action Buttons */}
                          <div className="flex items-center gap-2">
-                             {/* Save and Run - Only on the first step for now */}
-                             {configureStep === 'searchInfo' && (
-                                <Button variant="secondary" onClick={handleSaveAndRun} disabled={!uploadedFile || !jobTitles.trim() /* Add other validations */}>
-                                    Save and Run
+                             {/* Show "Save and Run" only on the final (review) step */}
+                              {configureStep === 'review' && (
+                                <Button variant="secondary" onClick={handleSaveAndRun}>
+                                    Save and Run Simulation
                                 </Button>
                              )}
-                             {/* Next Button - Placeholder or navigate */}
-                             <Button onClick={handleNextStep} disabled={false /* Add validation for current step */}>
-                                Next
-                                <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" />
-                             </Button>
+
+                             {/* Show "Next" on all steps except the last one */}
+                              {configureStep !== 'review' ? (
+                                <Button onClick={handleNextStep}>
+                                    Next
+                                    <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" /> {/* Right Arrow */}
+                                 </Button>
+                              ) : (
+                                  // Optional: Different button text on the last step if needed
+                                  // <Button onClick={handleSaveAndRun}> Start Simulation </Button>
+                                  null // Or simply hide "Next" on the last step if "Save and Run" is primary
+                              )}
                          </div>
                     </CardFooter>
                 </Card>
@@ -621,7 +853,7 @@ export default function AutoApplyPage() {
 
       {/* Use TooltipProvider at a higher level if not already present */}
       <TooltipProvider>
-         <main className="mx-auto max-w-4xl"> {/* Consistent max-width */}
+         <main className="mx-auto max-w-5xl"> {/* Use consistent wider max-width */}
             {renderContent()}
          </main>
       </TooltipProvider>
