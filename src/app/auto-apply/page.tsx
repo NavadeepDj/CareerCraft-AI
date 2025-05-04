@@ -187,6 +187,7 @@ I am writing to apply for the {{JOB_TITLE}} position at {{COMPANY_NAME}}. You ma
 I am thrilled about the opportunity to contribute to your team, and I would welcome your availability to further discuss this.
 
 Best regards,
+
 {{USER_FIRSTNAME}} {{USER_LASTNAME}}`
     },
     {
@@ -992,11 +993,11 @@ export default function AutoApplyPage() {
     const getJobMatchLevelDescription = (level: number): string => {
         switch (level) {
         case 0: // Low
-            return "You will be matched with positions that meet only some of your preferences and information of your CV (résumé). We will try to apply to as many jobs as we can, but we risk that some might not be totally suitable for your profile.";
+            return "You will be matched with positions that meet only some of your preferences and information of your CV (resume). We will try to apply to as many jobs as we can, but we risk that some might not be totally suitable for your profile.";
         case 1: // Middle
-            return "You will be matched with positions that meet most of your preferences and information of your CV (résumé). We will try to apply to a lot of seemingly suitable jobs, but we risk that some might not be a 100% match with your profile.";
+            return "You will be matched with positions that meet most of your preferences and information of your CV (resume). We will try to apply to a lot of seemingly suitable jobs, but we risk that some might not be a 100% match with your profile.";
         case 2: // High
-            return "You will be matched with positions that meet all your preferences and information of your CV (résumé). We will take extra precautions to narrow down our search and apply only to jobs that match with the most of your specified details, to the degree possible.";
+            return "You will be matched with positions that meet all your preferences and information of your CV (resume). We will take extra precautions to narrow down our search and apply only to jobs that match with the most of your specified details, to the degree possible.";
         default:
             return "Select the desired level of job matching precision.";
         }
@@ -1149,7 +1150,7 @@ export default function AutoApplyPage() {
                              </div>
                             {/* File Upload Area */}
                              <div className="space-y-2">
-                                <Label>Upload your CV (résumé) <span className="text-destructive">*</span></Label>
+                                <Label>Upload your CV (resume) <span className="text-destructive">*</span></Label>
                                  <div className="p-4 bg-secondary rounded-md border border-input text-sm text-muted-foreground">
                                     <p className="font-medium text-foreground mb-2">
                                         {uploadedFile ? `CURRENTLY SELECTED: ${uploadedFile.name}` : "NO CVS UPLOADED YET"}
