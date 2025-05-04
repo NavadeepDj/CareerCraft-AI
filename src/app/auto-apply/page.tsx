@@ -534,9 +534,9 @@ export default function AutoApplyPage() {
   const [jobTitles, setJobTitles] = useState<string>('');
   const [jobLocation, setJobLocation] = useState<string>('');
   const [searchOnlyRemote, setSearchOnlyRemote] = useState<boolean>(false);
-  const [searchRemoteAnywhere, setSearchRemoteAnywhere] = useState<boolean>(false); // Premium feature
+  const [searchRemoteAnywhere, setSearchRemoteAnywhere] = useState<boolean>(false); // Removed premium flag
   const [searchJobBoards, setSearchJobBoards] = useState<string>('All'); // Default to 'All'
-  const [enableCareerPageSearch, setEnableCareerPageSearch] = useState<boolean>(false); // Premium feature
+  const [enableCareerPageSearch, setEnableCareerPageSearch] = useState<boolean>(false); // Removed premium flag
   const [experienceLevel, setExperienceLevel] = useState<string>('');
   const [jobType, setJobType] = useState<string>('');
 
@@ -554,7 +554,7 @@ export default function AutoApplyPage() {
   const [masterAutoApply, setMasterAutoApply] = useState<boolean>(false); // Master switch
   const [autoSendEmails, setAutoSendEmails] = useState<boolean>(false);
   const [autoFillForms, setAutoFillForms] = useState<boolean>(false);
-  const [aiAnswering, setAiAnswering] = useState<boolean>(false); // Premium
+  const [aiAnswering, setAiAnswering] = useState<boolean>(false); // Removed premium flag
   const [phoneCountryCode, setPhoneCountryCode] = useState<string>('+91'); // Default to India
   const [phoneNumber, setPhoneNumber] = useState<string>(''); // Example '06 12 34 56 70'
   const [cityLocation, setCityLocation] = useState<string>('');
@@ -1058,16 +1058,16 @@ export default function AutoApplyPage() {
                                       Search only for remote jobs
                                   </Label>
                                 </div>
-                                 <div className="flex items-center space-x-2 opacity-50 cursor-not-allowed"> {/* Simulate disabled premium feature */}
+                                 <div className="flex items-center space-x-2"> {/* Removed premium classes */}
                                    <Checkbox
                                        id="searchRemoteAnywhere"
                                        checked={searchRemoteAnywhere}
                                        onCheckedChange={onSearchRemoteAnywhereChange}
-                                       disabled // Premium feature
+                                       // disabled // Removed disabled attribute
                                    />
-                                   <Label htmlFor="searchRemoteAnywhere" className="text-sm font-normal cursor-not-allowed flex items-center">
+                                   <Label htmlFor="searchRemoteAnywhere" className="text-sm font-normal cursor-pointer flex items-center"> {/* Removed premium classes */}
                                        Search for remote jobs anywhere in the world
-                                       <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">STANDARD AND PREMIUM MEMBERS ONLY</Badge>
+                                       {/* <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">STANDARD AND PREMIUM MEMBERS ONLY</Badge> */}
                                    </Label>
                                  </div>
                              </div>
@@ -1090,16 +1090,16 @@ export default function AutoApplyPage() {
                                 <p className="text-xs text-muted-foreground">Choose specific platforms if you want to narrow your search. Leave it blank to allow all platforms for your profile.</p>
                              </div>
                               {/* Enable Career Page Search */}
-                              <div className="flex items-center space-x-2 opacity-50 cursor-not-allowed"> {/* Simulate disabled premium feature */}
+                              <div className="flex items-center space-x-2"> {/* Removed premium classes */}
                                  <Checkbox
                                      id="enableCareerPageSearch"
                                      checked={enableCareerPageSearch}
                                      onCheckedChange={onEnableCareerPageSearchChange}
-                                     disabled // Premium feature
+                                     // disabled // Removed disabled attribute
                                  />
-                                 <Label htmlFor="enableCareerPageSearch" className="text-sm font-normal cursor-not-allowed flex items-center">
+                                 <Label htmlFor="enableCareerPageSearch" className="text-sm font-normal cursor-pointer flex items-center"> {/* Removed premium classes */}
                                     Enable Career Page Job Search
-                                     <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">PREMIUM MEMBERS ONLY</Badge>
+                                     {/* <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">PREMIUM MEMBERS ONLY</Badge> */}
                                  </Label>
                               </div>
                              {/* Experience and Job Type */}
@@ -1362,17 +1362,17 @@ export default function AutoApplyPage() {
                                     </div>
                                      <Switch id="autoFillForms" checked={autoFillForms} onCheckedChange={onAutoFillFormsChange} disabled={!masterAutoApply} />
                                 </div>
-                                 <div className="flex items-center justify-between rounded-md border p-4 opacity-50 cursor-not-allowed">
+                                 <div className="flex items-center justify-between rounded-md border p-4"> {/* Removed premium classes */}
                                     <div className="space-y-0.5 pr-4">
                                          <Label htmlFor="aiAnswering" className="font-medium flex items-center">
                                              AI answering
-                                            <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">PREMIUM MEMBERS ONLY</Badge>
+                                            {/* <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">PREMIUM MEMBERS ONLY</Badge> */}
                                          </Label>
                                          <p className="text-xs text-muted-foreground">
                                             Enable this to let AI handle any question that occur during the application processes.
                                         </p>
                                     </div>
-                                     <Switch id="aiAnswering" checked={aiAnswering} onCheckedChange={onAiAnsweringChange} disabled />
+                                     <Switch id="aiAnswering" checked={aiAnswering} onCheckedChange={onAiAnsweringChange} disabled={!masterAutoApply} /> {/* Removed disabled */}
                                 </div>
                              </div>
 
