@@ -5,12 +5,12 @@ import React, { useState, useCallback, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info, BarChart, Check, ArrowRight } from 'lucide-react'; // Added ArrowRight
+import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info, BarChart, Check, ArrowRight, Pencil } from 'lucide-react'; // Added Pencil
 import LoadingSpinner from '@/components/loading-spinner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea'; // Import Textarea
-import { ScrollArea } from '@/components/ui/scroll-area'; // Import ScrollArea
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from "@/hooks/use-toast";
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Switch } from "@/components/ui/switch"; // Import Switch
+import { Slider } from "@/components/ui/slider"; // Import Slider
 
 
 interface AppliedJob {
@@ -450,7 +452,7 @@ const Stepper: React.FC<{ currentStep: ConfigureStep }> = ({ currentStep }) => {
 
     return (
         <div className="mb-8 flex items-center justify-center space-x-4 md:space-x-8">
-            {steps.map((step, index) => ( // Corrected map parameters
+            {steps.map((step, index) => (
                 <div key={step.id} className="flex items-center">
                     <div
                         className={cn(
@@ -546,6 +548,28 @@ export default function AutoApplyPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false); // Track unsaved changes
 
+  // State variables for Step 3 (Settings)
+  const [masterAutoApply, setMasterAutoApply] = useState<boolean>(false); // Master switch
+  const [autoSendEmails, setAutoSendEmails] = useState<boolean>(false);
+  const [autoFillForms, setAutoFillForms] = useState<boolean>(false);
+  const [aiAnswering, setAiAnswering] = useState<boolean>(false); // Premium
+  const [phoneCountryCode, setPhoneCountryCode] = useState<string>('+33'); // Example
+  const [phoneNumber, setPhoneNumber] = useState<string>(''); // Example '06 12 34 56 70'
+  const [cityLocation, setCityLocation] = useState<string>('');
+  const [coverLetterContent, setCoverLetterContent] = useState<string>(
+    `The role is very appealing to me, and I believe that my experience and education make me a highly competitive candidate for this position.\nPlease see my resume for additional information on my experience.\n\nThank you for your time and consideration.\nI look forward to speaking with you about this employment opportunity.`
+  ); // Default from image
+  const [desiredSalaryCurrency, setDesiredSalaryCurrency] = useState<string>(''); // e.g., USD, EUR
+  const [minSalary, setMinSalary] = useState<string>('');
+  const [maxSalary, setMaxSalary] = useState<string>('');
+  const [excludeCompaniesInput, setExcludeCompaniesInput] = useState<string>('');
+  const [excludedCompanies, setExcludedCompanies] = useState<string[]>([]);
+  const [includeKeywordsInput, setIncludeKeywordsInput] = useState<string>('');
+  const [includedKeywords, setIncludedKeywords] = useState<string[]>([]);
+  const [excludeKeywordsInput, setExcludeKeywordsInput] = useState<string>('');
+  const [excludedKeywords, setExcludedKeywords] = useState<string[]>([]);
+  const [jobMatchLevel, setJobMatchLevel] = useState<number>(50); // Default to middle
+
 
   // Select an email template
   const handleSelectTemplate = (templateId: string) => {
@@ -638,6 +662,45 @@ export default function AutoApplyPage() {
       setHasUnsavedChanges(true); // Mark changes as unsaved
   };
   const onTestEmailRecipientChange = (e: ChangeEvent<HTMLInputElement>) => setTestEmailRecipient(e.target.value);
+
+  // Step 3
+  const onMasterAutoApplyChange = (checked: boolean) => {
+      setMasterAutoApply(checked);
+      // If master is turned off, ensure sub-options are also off
+      if (!checked) {
+          setAutoSendEmails(false);
+          setAutoFillForms(false);
+          setAiAnswering(false);
+      }
+  };
+  const onAutoSendEmailsChange = (checked: boolean) => setAutoSendEmails(checked);
+  const onAutoFillFormsChange = (checked: boolean) => setAutoFillForms(checked);
+  const onAiAnsweringChange = (checked: boolean) => setAiAnswering(checked);
+  const onPhoneCountryCodeChange = (value: string) => setPhoneCountryCode(value);
+  const onPhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value);
+  const onCityLocationChange = (e: ChangeEvent<HTMLInputElement>) => setCityLocation(e.target.value);
+  const onCoverLetterContentChange = (e: ChangeEvent<HTMLTextAreaElement>) => setCoverLetterContent(e.target.value);
+  const onDesiredSalaryCurrencyChange = (value: string) => setDesiredSalaryCurrency(value);
+  const onMinSalaryChange = (e: ChangeEvent<HTMLInputElement>) => setMinSalary(e.target.value);
+  const onMaxSalaryChange = (e: ChangeEvent<HTMLInputElement>) => setMaxSalary(e.target.value);
+  const onJobMatchLevelChange = (value: number[]) => setJobMatchLevel(value[0]);
+
+  // Handlers for adding/removing keywords/companies
+  const handleAddKeyword = (type: 'include' | 'exclude' | 'company') => {
+    const inputState = type === 'include' ? includeKeywordsInput : type === 'exclude' ? excludeKeywordsInput : excludeCompaniesInput;
+    const setter = type === 'include' ? setIncludedKeywords : type === 'exclude' ? setExcludedKeywords : setExcludedCompanies;
+    const inputSetter = type === 'include' ? setIncludeKeywordsInput : type === 'exclude' ? setExcludeKeywordsInput : setExcludeCompaniesInput;
+
+    if (inputState.trim()) {
+      setter(prev => [...prev, inputState.trim()]);
+      inputSetter('');
+    }
+  };
+
+  const handleRemoveItem = (type: 'include' | 'exclude' | 'company', itemToRemove: string) => {
+      const setter = type === 'include' ? setIncludedKeywords : type === 'exclude' ? setExcludedKeywords : setExcludedCompanies;
+      setter(prev => prev.filter(item => item !== itemToRemove));
+  };
 
 
   const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
@@ -771,7 +834,13 @@ export default function AutoApplyPage() {
          toast({ title: "Unsaved Changes", description: "Please save your email template changes before running the simulation.", variant: "destructive"});
          return;
      }
-     // TODO: Add validation for Step 3 and Step 4 if/when implemented
+     // Step 3 Validation
+     if (!phoneNumber.trim() || !cityLocation.trim()) {
+         setConfigureStep('settings');
+         toast({ title: "Missing Required Fields", description: "Please provide your Phone number and City in the Settings tab.", variant: "destructive" });
+         return;
+     }
+     // TODO: Add more validation for Step 3 if needed (e.g., salary format)
 
 
     setViewState('applying');
@@ -782,11 +851,21 @@ export default function AutoApplyPage() {
       // **SIMULATION:** In a real app, this would involve complex backend processes.
       console.log(`Simulating job search loop for: ${jobTitles} in ${jobLocation || 'Remote'}...`);
       console.log("Configuration:", {
+          // Step 1
           jobTitles, jobLocation, searchOnlyRemote, searchRemoteAnywhere,
           searchJobBoards, enableCareerPageSearch, experienceLevel, jobType,
           resume: uploadedFile?.name,
-          // Use the details of the *actually selected* template for the simulation log
-          emailTemplate: { name: selectedTemplate.name, subject: selectedTemplate.subject }
+          // Step 2
+          emailTemplate: { name: selectedTemplate.name, subject: selectedTemplate.subject },
+          // Step 3
+          masterAutoApply, autoSendEmails, autoFillForms, aiAnswering,
+          phone: `${phoneCountryCode} ${phoneNumber}`, cityLocation,
+          coverLetterPreview: coverLetterContent.substring(0, 50) + '...',
+          salaryRange: `${minSalary} - ${maxSalary} ${desiredSalaryCurrency}`,
+          excludedCompanies: excludedCompanies.join(', '),
+          includedKeywords: includedKeywords.join(', '),
+          excludedKeywords: excludedKeywords.join(', '),
+          jobMatchLevel,
       });
 
 
@@ -802,11 +881,13 @@ export default function AutoApplyPage() {
         { id: 'job4', title: `Senior ${jobTitles.split(',')[0].trim()}`, company: 'Faux Company', location: baseLocation, status: 'Applied', appliedDate: new Date().toLocaleDateString() },
       ];
 
-       // Simulate some errors randomly
-      const results = dummyJobs.map(job => ({
-          ...job,
-          status: (Math.random() > 0.8 && job.status === 'Applied') ? 'Error Applying' : job.status
-      }));
+       // Simulate some errors randomly and exclude based on settings
+      const results = dummyJobs
+         .filter(job => !excludedCompanies.some(exComp => job.company.toLowerCase().includes(exComp.toLowerCase())))
+         .map(job => ({
+            ...job,
+            status: (Math.random() > 0.8 && job.status === 'Applied') ? 'Error Applying' : job.status
+         }));
 
       setAppliedJobs(results);
       setViewState('results');
@@ -846,7 +927,12 @@ export default function AutoApplyPage() {
          // Only navigate if changes are saved
          setConfigureStep('settings');
     } else if (configureStep === 'settings') {
-        // Add validation for settings if needed
+        // Validate Settings Step
+         if (!phoneNumber.trim() || !cityLocation.trim()) {
+             toast({ title: "Missing Required Fields", description: "Please provide your Phone number and City.", variant: "destructive" });
+             return;
+         }
+         // Add more validation if needed (e.g., salary format)
         setConfigureStep('review');
     } else if (configureStep === 'review') {
         // Review step is the last step before running
@@ -883,6 +969,18 @@ export default function AutoApplyPage() {
       // setUploadedFile(null); ...etc
       setHasUnsavedChanges(false); // Reset unsaved changes when starting new config
   };
+
+    // Helper component for keyword/company list items
+    const ItemChip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
+        <Badge variant="secondary" className="flex items-center gap-1 pr-1">
+            {label}
+            <button onClick={onRemove} className="rounded-full hover:bg-muted-foreground/20 p-0.5">
+                <CircleX className="h-3 w-3" />
+                <span className="sr-only">Remove {label}</span>
+            </button>
+        </Badge>
+    );
+
 
   const renderContent = () => {
      switch(viewState) {
@@ -1099,13 +1197,13 @@ export default function AutoApplyPage() {
                                                         key={template.id}
                                                         variant="ghost"
                                                         className={cn(
-                                                            "w-full justify-start h-auto py-2 px-3 text-left whitespace-normal", // Added whitespace-normal
+                                                            "w-full justify-start h-auto py-2 px-3 text-left whitespace-normal",
                                                             selectedEmailTemplateId === template.id && "bg-secondary font-semibold"
                                                         )}
                                                         onClick={() => handleSelectTemplate(template.id)}
                                                     >
                                                         {template.displayName}
-                                                        {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary flex-shrink-0" />} {/* Added flex-shrink-0 */}
+                                                        {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary flex-shrink-0" />}
                                                     </Button>
                                                 ))}
                                              </div>
@@ -1120,13 +1218,13 @@ export default function AutoApplyPage() {
                                                         key={template.id}
                                                         variant="ghost"
                                                         className={cn(
-                                                            "w-full justify-start h-auto py-2 px-3 text-left whitespace-normal", // Added whitespace-normal
+                                                            "w-full justify-start h-auto py-2 px-3 text-left whitespace-normal",
                                                             selectedEmailTemplateId === template.id && "bg-secondary font-semibold"
                                                         )}
                                                         onClick={() => handleSelectTemplate(template.id)}
                                                     >
                                                          {template.displayName}
-                                                         {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary flex-shrink-0" />} {/* Added flex-shrink-0 */}
+                                                         {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary flex-shrink-0" />}
                                                     </Button>
                                                  ))}
                                                 {allTemplates.filter(t => t.isUserTemplate).length === 0 && (
@@ -1205,10 +1303,323 @@ export default function AutoApplyPage() {
                      )}
 
 
-                     {/* --- Step 3: Settings (Placeholder) --- */}
+                     {/* --- Step 3: Settings --- */}
                      {configureStep === 'settings' && (
-                         <CardContent className="min-h-[200px] flex items-center justify-center border-t pt-6">
-                             <p className="text-muted-foreground">3. Settings Configuration (Not Implemented)</p>
+                         <CardContent className="space-y-8 border-t pt-6">
+                             <h3 className="font-semibold text-lg mb-4">3. Fine-tune your automation settings</h3>
+
+                             {/* Master Toggle */}
+                              <Alert variant={masterAutoApply ? "default" : "destructive"} className={masterAutoApply ? "bg-secondary border-primary/20" : "bg-destructive/10 border-destructive/50"}>
+                                <AlertTriangle className={cn("h-4 w-4", masterAutoApply ? "text-muted-foreground" : "text-destructive")} />
+                                <AlertTitle>{masterAutoApply ? "Auto-Apply Active" : "Auto-Apply Disabled"}</AlertTitle>
+                                <AlertDescription className="flex items-center justify-between">
+                                    {masterAutoApply
+                                        ? "The Master Auto-apply toggle is enabled. Emails and form fills will proceed based on individual loop settings."
+                                        : "The Master Auto-apply toggle is disabled. Please enable it if you want to automatically send emails and fill-in job application forms."}
+                                     <Switch
+                                        checked={masterAutoApply}
+                                        onCheckedChange={onMasterAutoApplyChange}
+                                        aria-label="Master Auto-Apply Toggle"
+                                     />
+                                </AlertDescription>
+                             </Alert>
+
+                             {/* Individual Toggles */}
+                             <div className="space-y-4">
+                                <div className="flex items-center justify-between rounded-md border p-4">
+                                    <div className="space-y-0.5 pr-4">
+                                        <Label htmlFor="autoSendEmails" className="font-medium">Automatically send emails</Label>
+                                        <p className="text-xs text-muted-foreground">
+                                            Enable this to let our platform instantly send emails to matching companies, streamlining your job hunt. Prefer reviewing emails first? Simply turn this off to personalise messages, ensuring alignment with your preferences before dispatch.
+                                        </p>
+                                    </div>
+                                    <Switch id="autoSendEmails" checked={autoSendEmails} onCheckedChange={onAutoSendEmailsChange} disabled={!masterAutoApply} />
+                                </div>
+                                <div className="flex items-center justify-between rounded-md border p-4">
+                                    <div className="space-y-0.5 pr-4">
+                                        <Label htmlFor="autoFillForms" className="font-medium">Auto-fill Application Forms</Label>
+                                         <p className="text-xs text-muted-foreground">
+                                            Enable this to allow our platform to automatically submit job application forms on your behalf.
+                                            <Button variant="link" size="sm" className="p-0 h-auto ml-1 text-primary">Check an example application form</Button> that we usually fill for you.
+                                         </p>
+                                    </div>
+                                     <Switch id="autoFillForms" checked={autoFillForms} onCheckedChange={onAutoFillFormsChange} disabled={!masterAutoApply} />
+                                </div>
+                                 <div className="flex items-center justify-between rounded-md border p-4 opacity-50 cursor-not-allowed">
+                                    <div className="space-y-0.5 pr-4">
+                                         <Label htmlFor="aiAnswering" className="font-medium flex items-center">
+                                             AI answering
+                                            <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">PREMIUM MEMBERS ONLY</Badge>
+                                         </Label>
+                                         <p className="text-xs text-muted-foreground">
+                                            Enable this to let AI handle any question that occur during the application processes.
+                                        </p>
+                                    </div>
+                                     <Switch id="aiAnswering" checked={aiAnswering} onCheckedChange={onAiAnsweringChange} disabled />
+                                </div>
+                             </div>
+
+                             {/* Chrome Extension */}
+                             <div className="flex items-center justify-between rounded-md border p-4">
+                                <div className="space-y-0.5">
+                                    <Label className="font-medium">Auto-apply using our Chrome extension</Label>
+                                    <p className="text-xs text-muted-foreground">
+                                        Click the install button on the right to enable our Chrome extension. This will allow you to apply on platforms requiring login.
+                                    </p>
+                                </div>
+                                <Button variant="default" disabled>INSTALL</Button> {/* Simulating disabled install button */}
+                            </div>
+
+
+                            {/* Additional Form Fields */}
+                             <div className="space-y-4 border-t pt-6">
+                                 <h4 className="font-semibold text-md">Additional Fields for Form Applications</h4>
+                                 <p className="text-sm text-muted-foreground">The below fields are asked by most companies in order to let you apply online. We need to save your answers in order to be able to apply online for you.</p>
+
+                                 {/* Phone Number */}
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 items-end">
+                                     <div className="space-y-1 md:col-span-1">
+                                        <Label htmlFor="phoneCountryCode">Phone <span className="text-destructive">*</span></Label>
+                                        {/* Replace with a proper country code selector if available */}
+                                         <Select value={phoneCountryCode} onValueChange={onPhoneCountryCodeChange}>
+                                            <SelectTrigger id="phoneCountryCode">
+                                                <SelectValue placeholder="Code" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                                                <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                                                <SelectItem value="+33">🇫🇷 +33</SelectItem>
+                                                <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                                                <SelectItem value="+91">🇮🇳 +91</SelectItem>
+                                                {/* Add more country codes */}
+                                            </SelectContent>
+                                        </Select>
+                                     </div>
+                                     <div className="space-y-1 md:col-span-2">
+                                         <Label htmlFor="phoneNumber" className="sr-only">Phone Number</Label>
+                                         <Input
+                                             id="phoneNumber"
+                                             value={phoneNumber}
+                                             onChange={onPhoneNumberChange}
+                                             placeholder="Example: 06 12 34 56 70"
+                                             required
+                                         />
+                                    </div>
+                                 </div>
+
+                                 {/* City */}
+                                <div className="space-y-1">
+                                    <Label htmlFor="cityLocation">City <span className="text-destructive">*</span></Label>
+                                     <Input
+                                         id="cityLocation"
+                                         value={cityLocation}
+                                         onChange={onCityLocationChange}
+                                         placeholder="Location that you are based in"
+                                         required
+                                     />
+                                 </div>
+
+                                 {/* Cover Letter */}
+                                 <div className="space-y-1">
+                                     <Label htmlFor="coverLetterContent">Cover letter</Label>
+                                     <div className="relative">
+                                         <Textarea
+                                             id="coverLetterContent"
+                                             value={coverLetterContent}
+                                             onChange={onCoverLetterContentChange}
+                                             rows={6}
+                                             className="pr-10" // Add padding for the icon button
+                                         />
+                                         <Button variant="ghost" size="icon" className="absolute bottom-2 right-2 h-6 w-6 text-muted-foreground hover:bg-secondary">
+                                             <Pencil className="h-4 w-4" />
+                                             <span className="sr-only">Edit Cover Letter</span>
+                                         </Button>
+                                     </div>
+                                 </div>
+                            </div>
+
+                            {/* Salary Range */}
+                             <div className="space-y-2 border-t pt-6">
+                                <Label className="flex items-center gap-1">
+                                     Desired salary range
+                                     <TooltipProvider>
+                                       <Tooltip>
+                                         <TooltipTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-4 w-4 text-muted-foreground"><Info className="h-3 w-3" /></Button>
+                                         </TooltipTrigger>
+                                         <TooltipContent><p>Set your desired salary range to filter job matches. <br /> Only jobs with reported salaries that match your criteria will be included.</p></TooltipContent>
+                                       </Tooltip>
+                                    </TooltipProvider>
+                                </Label>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                     <Select value={desiredSalaryCurrency} onValueChange={onDesiredSalaryCurrencyChange}>
+                                        <SelectTrigger id="salaryCurrency">
+                                            <SelectValue placeholder="Currency" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="USD">USD ($)</SelectItem>
+                                            <SelectItem value="EUR">EUR (€)</SelectItem>
+                                            <SelectItem value="GBP">GBP (£)</SelectItem>
+                                            <SelectItem value="INR">INR (₹)</SelectItem>
+                                            {/* Add more currencies */}
+                                        </SelectContent>
+                                    </Select>
+                                    <Input
+                                        id="minSalary"
+                                        type="number"
+                                        value={minSalary}
+                                        onChange={onMinSalaryChange}
+                                        placeholder="Min Salary"
+                                        min="0"
+                                    />
+                                    <Input
+                                        id="maxSalary"
+                                        type="number"
+                                        value={maxSalary}
+                                        onChange={onMaxSalaryChange}
+                                        placeholder="Max Salary"
+                                        min="0"
+                                    />
+                                 </div>
+                                 <Button variant="link" size="sm" className="p-0 h-auto text-primary text-xs">Learn More</Button>
+                             </div>
+
+
+                             {/* Exclude Companies */}
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+                                <div className="space-y-2">
+                                     <Label htmlFor="excludeCompaniesInput" className="flex items-center gap-1">
+                                         Do you want to exclude some companies?
+                                         <TooltipProvider>
+                                           <Tooltip>
+                                             <TooltipTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-4 w-4 text-muted-foreground"><Info className="h-3 w-3" /></Button>
+                                             </TooltipTrigger>
+                                             <TooltipContent><p>Select companies that will not be part of your search.</p></TooltipContent>
+                                           </Tooltip>
+                                         </TooltipProvider>
+                                     </Label>
+                                     <div className="flex gap-2">
+                                         <Input
+                                             id="excludeCompaniesInput"
+                                             value={excludeCompaniesInput}
+                                             onChange={(e) => setExcludeCompaniesInput(e.target.value)}
+                                             placeholder="Company name and press enter"
+                                             onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword('company')}
+                                             className="flex-grow"
+                                         />
+                                          <Button variant="secondary" onClick={() => handleAddKeyword('company')}>Add</Button>
+                                     </div>
+                                </div>
+                                <div className="space-y-1">
+                                     <p className="text-sm font-medium">Companies you have chosen</p>
+                                     {excludedCompanies.length > 0 ? (
+                                        <div className="flex flex-wrap gap-2 rounded-md border p-2 min-h-[40px] bg-secondary">
+                                             {excludedCompanies.map(company => (
+                                                 <ItemChip key={company} label={company} onRemove={() => handleRemoveItem('company', company)} />
+                                             ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-muted-foreground">You don't have any excluded companies selected for this Loop.</p>
+                                    )}
+                                </div>
+                             </div>
+
+
+                              {/* Include Keywords */}
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+                                <div className="space-y-2">
+                                    <Label htmlFor="includeKeywordsInput" className="flex items-center gap-1">
+                                         Select the keywords that should be present in the job posting
+                                         <TooltipProvider><Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-4 w-4 text-muted-foreground"><Info className="h-3 w-3" /></Button></TooltipTrigger><TooltipContent><p>Keywords that must be included in job description.</p></TooltipContent></Tooltip></TooltipProvider>
+                                     </Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            id="includeKeywordsInput"
+                                            value={includeKeywordsInput}
+                                            onChange={(e) => setIncludeKeywordsInput(e.target.value)}
+                                            placeholder="Type a keyword and press enter"
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword('include')}
+                                            className="flex-grow"
+                                        />
+                                         <Button variant="secondary" onClick={() => handleAddKeyword('include')}>Add</Button>
+                                    </div>
+                                </div>
+                                 <div className="space-y-1">
+                                    <p className="text-sm font-medium">Keywords you have chosen</p>
+                                    {includedKeywords.length > 0 ? (
+                                         <div className="flex flex-wrap gap-2 rounded-md border p-2 min-h-[40px] bg-secondary">
+                                             {includedKeywords.map(keyword => (
+                                                 <ItemChip key={keyword} label={keyword} onRemove={() => handleRemoveItem('include', keyword)} />
+                                             ))}
+                                         </div>
+                                    ) : (
+                                        <p className="text-xs text-muted-foreground">You don't have any keywords selected.</p>
+                                    )}
+                                </div>
+                             </div>
+
+                             {/* Exclude Keywords */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+                                <div className="space-y-2">
+                                     <Label htmlFor="excludeKeywordsInput" className="flex items-center gap-1">
+                                         Exclude keywords
+                                         <TooltipProvider><Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" className="h-4 w-4 text-muted-foreground"><Info className="h-3 w-3" /></Button></TooltipTrigger><TooltipContent><p>Keywords that must NOT be included in job description.</p></TooltipContent></Tooltip></TooltipProvider>
+                                     </Label>
+                                    <div className="flex gap-2">
+                                        <Input
+                                            id="excludeKeywordsInput"
+                                            value={excludeKeywordsInput}
+                                            onChange={(e) => setExcludeKeywordsInput(e.target.value)}
+                                            placeholder="Type a keyword and press enter"
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword('exclude')}
+                                            className="flex-grow"
+                                        />
+                                        <Button variant="secondary" onClick={() => handleAddKeyword('exclude')}>Add</Button>
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-sm font-medium">Keywords you have chosen</p>
+                                     {excludedKeywords.length > 0 ? (
+                                         <div className="flex flex-wrap gap-2 rounded-md border p-2 min-h-[40px] bg-secondary">
+                                             {excludedKeywords.map(keyword => (
+                                                 <ItemChip key={keyword} label={keyword} onRemove={() => handleRemoveItem('exclude', keyword)} />
+                                             ))}
+                                         </div>
+                                    ) : (
+                                        <p className="text-xs text-muted-foreground">You don't have any keywords selected.</p>
+                                    )}
+                                </div>
+                            </div>
+
+                             {/* Job Match Level */}
+                            <div className="space-y-3 border-t pt-6">
+                                 <Label htmlFor="jobMatchLevel">Please choose the level of the job match you prefer</Label>
+                                 <p className="text-sm text-muted-foreground">Middle match with your preferences</p>
+                                 <Slider
+                                     id="jobMatchLevel"
+                                     value={[jobMatchLevel]}
+                                     onValueChange={onJobMatchLevelChange}
+                                     max={100}
+                                     step={1}
+                                     className="w-[60%] mx-auto" // Center the slider a bit
+                                 />
+                                 <div className="flex justify-between w-[60%] mx-auto text-xs text-muted-foreground">
+                                     <span>Low</span>
+                                     <span>Middle</span>
+                                     <span>High</span>
+                                 </div>
+                            </div>
+
+                             {/* Final Note */}
+                              <Alert variant="default" className="bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700">
+                               <Info className="h-4 w-4 text-blue-700 dark:text-blue-300" />
+                               <AlertTitle className="text-blue-800 dark:text-blue-200">Important Note</AlertTitle>
+                               <AlertDescription className="text-blue-700 dark:text-blue-300">
+                                   You will be matched with positions that meet most of your preferences and information of your CV (résumé). We will try to apply to a list of seemingly suitable jobs, but we risk that some might not be a 100% match with your profile.
+                               </AlertDescription>
+                             </Alert>
+
                          </CardContent>
                      )}
 
@@ -1227,7 +1638,7 @@ export default function AutoApplyPage() {
                             </Button>
                          ) : (
                             <Button variant="outline" onClick={handlePreviousStep}>
-                                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                                <ArrowLeft className="mr-2 h-4 w-4" /> PREVIOUS {/* Changed label */}
                             </Button>
                          )}
 
@@ -1236,15 +1647,22 @@ export default function AutoApplyPage() {
                              {/* Show "Save and Run" only on the final (review) step */}
                               {configureStep === 'review' && (
                                 <Button variant="default" onClick={handleSaveAndRun}>
-                                    Save and Run Simulation
+                                    SAVE AND RUN {/* Changed label */}
                                 </Button>
                              )}
+                              {/* Show "Save and Run" on settings step as well, but only if review is not implemented */}
+                              {configureStep === 'settings' && (
+                                 <Button variant="ghost" onClick={handleSaveAndRun} className="hover:bg-transparent hover:text-primary">
+                                     SAVE AND RUN
+                                 </Button>
+                              )}
+
 
                              {/* Show "Next" on all steps except the last one */}
                               {configureStep !== 'review' ? (
-                                <Button onClick={handleNextStep} disabled={isSaving}>
-                                    Next
-                                    <ArrowRight className="ml-2 h-4 w-4" /> {/* Right Arrow */}
+                                <Button onClick={handleNextStep} disabled={isSaving} variant="default"> {/* Made Next default */}
+                                    NEXT
+                                    <ArrowRight className="ml-2 h-4 w-4" />
                                  </Button>
                               ) : (
                                   null // Hide "Next" on the last step
@@ -1358,5 +1776,3 @@ export default function AutoApplyPage() {
     </div>
   );
 }
-
-    
