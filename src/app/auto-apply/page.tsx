@@ -5,7 +5,7 @@ import React, { useState, useCallback, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info, BarChart, Check } from 'lucide-react';
+import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info, BarChart, Check, ArrowRight } from 'lucide-react'; // Added ArrowRight
 import LoadingSpinner from '@/components/loading-spinner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -372,6 +372,8 @@ I also found this job posting: {{JOB_URL}}. Is the position still open?
 
 I would be very interested to work as a {{JOB_TITLE}} in {{JOB_LOCATION}}. I already have offers in similar positions, so I am currently evaluating them in order to decide my next steps.
 
+
+
 You can find my cv attached (if you need any other document or details about my experience let me know).
 
 Feel free to contact me to arrange a skype call to discuss more.
@@ -448,7 +450,7 @@ const Stepper: React.FC<{ currentStep: ConfigureStep }> = ({ currentStep }) => {
 
     return (
         <div className="mb-8 flex items-center justify-center space-x-4 md:space-x-8">
-            {steps.map((index, step) => ( // Fixed: map parameters should be (item, index)
+            {steps.map((step, index) => ( // Corrected map parameters
                 <div key={step.id} className="flex items-center">
                     <div
                         className={cn(
@@ -542,12 +544,10 @@ export default function AutoApplyPage() {
   const [emailBody, setEmailBody] = useState<string>(popularTemplates[0]?.body || '');
   const [testEmailRecipient, setTestEmailRecipient] = useState<string>('sujithgopi740@gmail.com'); // Default from image
   const [isSaving, setIsSaving] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false); // Track unsaved changes
 
 
-  const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
-  const [errorMessage, setErrorMessage] = useState<string>('');
-
-   // Select an email template
+  // Select an email template
   const handleSelectTemplate = (templateId: string) => {
     const selected = allTemplates.find(t => t.id === templateId);
     if (selected) {
@@ -555,6 +555,7 @@ export default function AutoApplyPage() {
         setEmailTemplateName(selected.name); // Use internal name for the input field
         setEmailSubject(selected.subject);
         setEmailBody(selected.body);
+        setHasUnsavedChanges(false); // Reset unsaved changes flag when selecting a template
     }
   };
 
@@ -617,13 +618,32 @@ export default function AutoApplyPage() {
   const onEnableCareerPageSearchChange = (checked: boolean | 'indeterminate') => setEnableCareerPageSearch(Boolean(checked));
 
   // Step 2
-  const onEmailTemplateNameChange = (e: ChangeEvent<HTMLInputElement>) => setEmailTemplateName(e.target.value);
-  const onEmailSubjectChange = (e: ChangeEvent<HTMLInputElement>) => setEmailSubject(e.target.value);
-  const onEmailBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => setEmailBody(e.target.value);
+  const onEmailTemplateNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+      setEmailTemplateName(e.target.value);
+      setHasUnsavedChanges(true); // Mark changes as unsaved
+  };
+  const onEmailSubjectChange = (e: ChangeEvent<HTMLInputElement>) => {
+      setEmailSubject(e.target.value);
+      setHasUnsavedChanges(true); // Mark changes as unsaved
+  };
+  const onEmailBodyChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+      setEmailBody(e.target.value);
+      setHasUnsavedChanges(true); // Mark changes as unsaved
+  };
   const onTestEmailRecipientChange = (e: ChangeEvent<HTMLInputElement>) => setTestEmailRecipient(e.target.value);
+
+
+  const [appliedJobs, setAppliedJobs] = useState<AppliedJob[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   // Handle creating a new template
   const handleCreateTemplate = () => {
+      // Check for unsaved changes before creating new
+      if (hasUnsavedChanges) {
+          if (!confirm("You have unsaved changes. Are you sure you want to discard them and create a new template?")) {
+              return;
+          }
+      }
       // Set default values for a new template
       setSelectedEmailTemplateId(''); // Clear selection to indicate it's a new/custom one
       setEmailTemplateName('New Template');
@@ -631,6 +651,7 @@ export default function AutoApplyPage() {
       setEmailBody('{{COMPANY_NAME}} {{JOB_TITLE}} {{JOB_LOCATION}} {{USER_FIRSTNAME}} {{USER_LASTNAME}}');
        // Optionally, focus the name input or something similar
        document.getElementById('emailTemplateName')?.focus();
+       setHasUnsavedChanges(true); // New template starts with "unsaved" state until saved
   };
 
   // Placeholder for sending test email
@@ -642,56 +663,62 @@ export default function AutoApplyPage() {
        toast({ title: "Send Test Email (Simulation)", description: `Simulating sending test email to ${testEmailRecipient} using template '${emailTemplateName}'.` });
        // Actual implementation would involve a backend service.
   };
-  // Placeholder for saving changes to template (if editable)
-  const handleSaveChanges = async () => {
-       // In a real app: Update the template in state/backend if it's a user template
-      if (!emailTemplateName.trim() || !emailSubject.trim() || !emailBody.trim()) {
+
+   // Save changes to the current template (or create new one) in state
+   const handleSaveChanges = async () => {
+       if (!emailTemplateName.trim() || !emailSubject.trim() || !emailBody.trim()) {
              toast({ title: "Incomplete Email Template", description: "Please ensure the template has name, subject, and body.", variant: "destructive"});
              return;
          }
 
        setIsSaving(true);
-       toast({ title: "Saving Changes (Simulation)", description: `Simulating saving changes to template '${emailTemplateName}'.` });
-       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate async operation
+       toast({ title: "Saving Template...", description: `Simulating saving template '${emailTemplateName}'.` });
+       await new Promise(resolve => setTimeout(resolve, 700)); // Simulate async operation
 
-       // Update the template in the local state (for simulation)
-        const existingIndex = allTemplates.findIndex(t => t.id === selectedEmailTemplateId);
-        if (selectedEmailTemplateId && existingIndex > -1) {
-            // Update existing template if it's a user template or allow editing popular ones (choose behavior)
-             // For now, allow editing any selected template locally
-            const updatedTemplates = [...allTemplates];
-            updatedTemplates[existingIndex] = {
-                ...updatedTemplates[existingIndex],
-                name: emailTemplateName, // Update internal name
-                displayName: emailTemplateName, // Update display name too (or have a separate field)
-                subject: emailSubject,
-                body: emailBody,
-                 isUserTemplate: updatedTemplates[existingIndex].isUserTemplate || false // Preserve user flag or default to false if editing popular
-            };
-            setAllTemplates(updatedTemplates);
-             toast({ title: "Template Updated", description: `Template '${emailTemplateName}' updated locally.` });
+       // Determine if it's a new template or an update
+       const isUpdatingExisting = selectedEmailTemplateId && allTemplates.find(t => t.id === selectedEmailTemplateId);
+       let updatedTemplates = [...allTemplates];
+       let newTemplateId = selectedEmailTemplateId;
 
-        } else if (!selectedEmailTemplateId || allTemplates.findIndex(t => t.id === selectedEmailTemplateId) === -1) {
-            // Add new template if it doesn't have an ID or ID doesn't exist (was created)
-            const newTemplate: EmailTemplate = {
-                id: `tpl-user-${Date.now()}`, // Generate a temporary unique ID
-                name: emailTemplateName,
-                displayName: emailTemplateName,
-                subject: emailSubject,
-                body: emailBody,
-                isUserTemplate: true,
-            };
-            setAllTemplates([...allTemplates, newTemplate]);
-            setSelectedEmailTemplateId(newTemplate.id); // Select the newly created template
-            toast({ title: "Template Saved", description: `New template '${emailTemplateName}' created successfully.` });
-        } else {
-            // Handle edge case if needed, e.g., ID exists but wasn't found (shouldn't happen with findIndex logic)
-            toast({ title: "Save Error", description: "Could not determine whether to update or create.", variant: "destructive" });
-        }
+       if (isUpdatingExisting) {
+           // Update existing template
+           updatedTemplates = updatedTemplates.map(template => {
+               if (template.id === selectedEmailTemplateId) {
+                   return {
+                       ...template,
+                       name: emailTemplateName.trim(),
+                       displayName: emailTemplateName.trim(), // Update display name too
+                       subject: emailSubject.trim(),
+                       body: emailBody,
+                       // Preserve isUserTemplate flag
+                   };
+               }
+               return template;
+           });
+           toast({ title: "Template Updated", description: `Template '${emailTemplateName}' saved.` });
+       } else {
+           // Add new template
+           const newTemplate: EmailTemplate = {
+               id: `tpl-user-${Date.now()}`, // Generate a temporary unique ID
+               name: emailTemplateName.trim(),
+               displayName: emailTemplateName.trim(),
+               subject: emailSubject.trim(),
+               body: emailBody,
+               isUserTemplate: true, // New templates are always user templates
+           };
+           updatedTemplates.push(newTemplate);
+           newTemplateId = newTemplate.id; // Store the new ID
+           // Automatically select the newly created template
+           setSelectedEmailTemplateId(newTemplateId);
+           toast({ title: "Template Created", description: `Template '${newTemplate.name}' saved.` });
+       }
 
+
+       setAllTemplates(updatedTemplates);
        setIsSaving(false);
+       setHasUnsavedChanges(false); // Mark changes as saved
        // Stay on the email template step after saving
-  };
+   };
 
 
   // --- Navigation and Actions ---
@@ -725,11 +752,17 @@ export default function AutoApplyPage() {
        toast({ title: "Missing Job Type", description: "Please select the desired job type.", variant: "destructive" });
        return;
      }
-     // Step 2 Validation (Basic)
-     if (!emailTemplateName.trim() || !emailSubject.trim() || !emailBody.trim()) {
+     // Step 2 Validation (Basic) - Ensure a template is selected and has content
+     const selectedTemplate = allTemplates.find(t => t.id === selectedEmailTemplateId);
+     if (!selectedTemplate || !selectedTemplate.name || !selectedTemplate.subject || !selectedTemplate.body) {
           setConfigureStep('emailTemplate');
-          toast({ title: "Incomplete Email Template", description: "Please ensure the email template has a name, subject, and body.", variant: "destructive" });
+          toast({ title: "Incomplete Email Template", description: "Please select a valid template or ensure the current template is saved and complete.", variant: "destructive" });
           return;
+     }
+     if (hasUnsavedChanges) { // Check for unsaved changes before running
+         setConfigureStep('emailTemplate');
+         toast({ title: "Unsaved Changes", description: "Please save your email template changes before running the simulation.", variant: "destructive"});
+         return;
      }
      // TODO: Add validation for Step 3 and Step 4 if/when implemented
 
@@ -745,8 +778,10 @@ export default function AutoApplyPage() {
           jobTitles, jobLocation, searchOnlyRemote, searchRemoteAnywhere,
           searchJobBoards, enableCareerPageSearch, experienceLevel, jobType,
           resume: uploadedFile?.name,
-          emailTemplate: { name: emailTemplateName, subject: emailSubject }
+          // Use the details of the *actually selected* template for the simulation log
+          emailTemplate: { name: selectedTemplate.name, subject: selectedTemplate.subject }
       });
+
 
       // Simulate API call delay and application process
       await new Promise(resolve => setTimeout(resolve, 3000));
@@ -790,13 +825,19 @@ export default function AutoApplyPage() {
         if (!jobType) { toast({ title: "Missing Job Type", variant: "destructive" }); return; }
         setConfigureStep('emailTemplate');
     } else if (configureStep === 'emailTemplate') {
-         if (!emailTemplateName.trim() || !emailSubject.trim() || !emailBody.trim()) {
-             toast({ title: "Incomplete Email Template", description: "Please ensure the email template has name, subject, and body.", variant: "destructive"});
-             return;
-         }
-        // No automatic save on next, user must explicitly click SAVE
-        // Consider adding a check for unsaved changes if desired.
-        setConfigureStep('settings');
+         // Check if template content is unsaved before proceeding
+          if (hasUnsavedChanges) {
+              toast({ title: "Unsaved Changes", description: "Please save your email template changes before proceeding.", variant: "destructive"});
+              return;
+          }
+          // Ensure a template is selected (it should be if saved/created)
+          const selectedTemplate = allTemplates.find(t => t.id === selectedEmailTemplateId);
+          if (!selectedTemplate) {
+              toast({ title: "No Template Selected", description: "Please select or create and save a template.", variant: "destructive"});
+              return;
+          }
+         // Only navigate if changes are saved
+         setConfigureStep('settings');
     } else if (configureStep === 'settings') {
         // Add validation for settings if needed
         setConfigureStep('review');
@@ -806,8 +847,17 @@ export default function AutoApplyPage() {
     }
   };
 
+
    const handlePreviousStep = () => {
      if (configureStep === 'emailTemplate') {
+        // Check for unsaved changes before going back
+         if (hasUnsavedChanges) {
+             if (!confirm("You have unsaved changes. Are you sure you want to discard them and go back?")) {
+                 return;
+             }
+             // Reset changes to the currently selected template's saved state
+             handleSelectTemplate(selectedEmailTemplateId); // Reselect to discard changes
+         }
         setConfigureStep('searchInfo');
      } else if (configureStep === 'settings') {
         setConfigureStep('emailTemplate');
@@ -824,6 +874,7 @@ export default function AutoApplyPage() {
       setConfigureStep('searchInfo'); // Start at the first step
       // Optionally clear old data when starting new configuration
       // setUploadedFile(null); ...etc
+      setHasUnsavedChanges(false); // Reset unsaved changes when starting new config
   };
 
   const renderContent = () => {
@@ -1118,8 +1169,9 @@ export default function AutoApplyPage() {
                                          <p className="text-xs text-muted-foreground">Hint: type {'{{'} to show the suggestions list (feature not implemented). NOTE: We will attach your CV to this email.</p>
                                      </div>
                                      {/* Updated Save Button Style */}
-                                     <Button onClick={handleSaveChanges} variant="default" disabled={isSaving}> {/* Changed variant to default */}
-                                        {isSaving ? "Saving..." : "SAVE"}
+                                      <Button onClick={handleSaveChanges} variant="default" disabled={isSaving} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                                         {isSaving ? "Saving..." : "SAVE"}
+                                         {hasUnsavedChanges && !isSaving && <span className="ml-2 text-xs opacity-70">(unsaved)</span>}
                                      </Button>
 
                                      {/* Send Test Email Section */}
@@ -1176,7 +1228,7 @@ export default function AutoApplyPage() {
                          <div className="flex items-center gap-2">
                              {/* Show "Save and Run" only on the final (review) step */}
                               {configureStep === 'review' && (
-                                <Button variant="default" onClick={handleSaveAndRun}> {/* Changed to default for consistency */}
+                                <Button variant="default" onClick={handleSaveAndRun}>
                                     Save and Run Simulation
                                 </Button>
                              )}
@@ -1185,7 +1237,7 @@ export default function AutoApplyPage() {
                               {configureStep !== 'review' ? (
                                 <Button onClick={handleNextStep} disabled={isSaving}>
                                     Next
-                                    <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" /> {/* Right Arrow */}
+                                    <ArrowRight className="ml-2 h-4 w-4" /> {/* Right Arrow */}
                                  </Button>
                               ) : (
                                   null // Hide "Next" on the last step
@@ -1275,7 +1327,13 @@ export default function AutoApplyPage() {
          {/* Keep consistent spacing */}
         <div className="w-[150px] text-right">
             {viewState === 'configure' && (
-                <Button variant="ghost" size="sm" onClick={() => setViewState('statistics')}>Cancel</Button>
+                <Button variant="ghost" size="sm" onClick={() => {
+                     if (hasUnsavedChanges && !confirm("You have unsaved changes. Are you sure you want to cancel and discard them?")) {
+                         return; // Don't cancel if user says no
+                     }
+                     setViewState('statistics'); // Go back to stats
+                     setHasUnsavedChanges(false); // Reset flag
+                }}>Cancel</Button>
             )}
         </div>
       </header>
