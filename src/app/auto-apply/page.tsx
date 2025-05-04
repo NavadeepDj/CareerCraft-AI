@@ -549,6 +549,13 @@ export default function AutoApplyPage() {
 
   // Select an email template
   const handleSelectTemplate = (templateId: string) => {
+    // Check for unsaved changes before switching
+     if (hasUnsavedChanges) {
+       if (!confirm("You have unsaved changes in the current template. Are you sure you want to discard them and switch?")) {
+         return; // Don't switch if user cancels
+       }
+     }
+
     const selected = allTemplates.find(t => t.id === templateId);
     if (selected) {
         setSelectedEmailTemplateId(selected.id);
@@ -1351,3 +1358,5 @@ export default function AutoApplyPage() {
     </div>
   );
 }
+
+    
