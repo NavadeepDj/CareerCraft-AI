@@ -624,8 +624,7 @@ export default function AutoApplyPage() {
 
   // Handle creating a new template
   const handleCreateTemplate = () => {
-      // toast({ title: "Create Template (Placeholder)", description: "Functionality to create a new template is not yet implemented." });
-       // Set default values for a new template
+      // Set default values for a new template
       setSelectedEmailTemplateId(''); // Clear selection to indicate it's a new/custom one
       setEmailTemplateName('New Template');
       setEmailSubject('Email Subject');
@@ -646,7 +645,6 @@ export default function AutoApplyPage() {
   // Placeholder for saving changes to template (if editable)
   const handleSaveChanges = async () => {
        // In a real app: Update the template in state/backend if it's a user template
-       // Maybe move to the next step after saving
       if (!emailTemplateName.trim() || !emailSubject.trim() || !emailBody.trim()) {
              toast({ title: "Incomplete Email Template", description: "Please ensure the template has name, subject, and body.", variant: "destructive"});
              return;
@@ -656,8 +654,37 @@ export default function AutoApplyPage() {
        toast({ title: "Saving Changes (Simulation)", description: `Simulating saving changes to template '${emailTemplateName}'.` });
        await new Promise(resolve => setTimeout(resolve, 1000));
 
+       // Update the template in the local state (for simulation)
+        const existingIndex = allTemplates.findIndex(t => t.id === selectedEmailTemplateId);
+        if (selectedEmailTemplateId && existingIndex > -1) {
+            // Update existing template
+            const updatedTemplates = [...allTemplates];
+            updatedTemplates[existingIndex] = {
+                ...updatedTemplates[existingIndex],
+                name: emailTemplateName, // Update internal name
+                displayName: emailTemplateName, // Update display name too (or have a separate field)
+                subject: emailSubject,
+                body: emailBody,
+            };
+            setAllTemplates(updatedTemplates);
+        } else if (!selectedEmailTemplateId) {
+            // Add new template if it doesn't have an ID (was created)
+            const newTemplate: EmailTemplate = {
+                id: `tpl-user-${Date.now()}`, // Generate a temporary unique ID
+                name: emailTemplateName,
+                displayName: emailTemplateName,
+                subject: emailSubject,
+                body: emailBody,
+                isUserTemplate: true,
+            };
+            setAllTemplates([...allTemplates, newTemplate]);
+            setSelectedEmailTemplateId(newTemplate.id); // Select the newly created template
+        }
+
        setIsSaving(false);
-       setConfigureStep('settings'); //Now move to settings step
+       // Stay on the email template step after saving
+       // setConfigureStep('settings'); // Don't move to settings automatically
+       toast({ title: "Template Saved", description: `Template '${emailTemplateName}' saved successfully.` });
   };
 
 
@@ -761,6 +788,8 @@ export default function AutoApplyPage() {
              toast({ title: "Incomplete Email Template", description: "Please ensure the template has name, subject, and body.", variant: "destructive"});
              return;
          }
+        // Ensure template changes are saved before moving next (optional, could force save)
+        // await handleSaveChanges(); // Could await save here if needed
         setConfigureStep('settings');
     } else if (configureStep === 'settings') {
         // Add validation for settings if needed
@@ -1082,7 +1111,10 @@ export default function AutoApplyPage() {
                                          />
                                          <p className="text-xs text-muted-foreground">Hint: type {'{{'} to show the suggestions list (feature not implemented). NOTE: We will attach your CV to this email.</p>
                                      </div>
-                                      <Button onClick={handleSaveChanges} variant="default" className="bg-green-600 hover:bg-green-700 text-white" disabled={isSaving}>{isSaving ? "Saving..." : "SAVE"}</Button> {/* Match style from image */}
+                                     {/* Updated Save Button Style */}
+                                     <Button onClick={handleSaveChanges} variant="outline" disabled={isSaving}>
+                                        {isSaving ? "Saving..." : "SAVE"}
+                                     </Button>
 
                                      {/* Send Test Email Section */}
                                      <div className="border-t pt-4 mt-4 space-y-2">
