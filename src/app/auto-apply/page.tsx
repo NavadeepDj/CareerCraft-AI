@@ -534,9 +534,9 @@ export default function AutoApplyPage() {
   const [jobTitles, setJobTitles] = useState<string>('');
   const [jobLocation, setJobLocation] = useState<string>('');
   const [searchOnlyRemote, setSearchOnlyRemote] = useState<boolean>(false);
-  const [searchRemoteAnywhere, setSearchRemoteAnywhere] = useState<boolean>(false); // Removed premium flag
+  const [searchRemoteAnywhere, setSearchRemoteAnywhere] = useState<boolean>(false);
   const [searchJobBoards, setSearchJobBoards] = useState<string>('All'); // Default to 'All'
-  const [enableCareerPageSearch, setEnableCareerPageSearch] = useState<boolean>(false); // Removed premium flag
+  const [enableCareerPageSearch, setEnableCareerPageSearch] = useState<boolean>(false);
   const [experienceLevel, setExperienceLevel] = useState<string>('');
   const [jobType, setJobType] = useState<string>('');
 
@@ -554,7 +554,7 @@ export default function AutoApplyPage() {
   const [masterAutoApply, setMasterAutoApply] = useState<boolean>(false); // Master switch
   const [autoSendEmails, setAutoSendEmails] = useState<boolean>(false);
   const [autoFillForms, setAutoFillForms] = useState<boolean>(false);
-  const [aiAnswering, setAiAnswering] = useState<boolean>(false); // Removed premium flag
+  const [aiAnswering, setAiAnswering] = useState<boolean>(false);
   const [phoneCountryCode, setPhoneCountryCode] = useState<string>('+91'); // Default to India
   const [phoneNumber, setPhoneNumber] = useState<string>(''); // Example '06 12 34 56 70'
   const [cityLocation, setCityLocation] = useState<string>('');
@@ -570,7 +570,7 @@ export default function AutoApplyPage() {
   const [includedKeywords, setIncludedKeywords] = useState<string[]>([]);
   const [excludeKeywordsInput, setExcludeKeywordsInput] = useState<string>('');
   const [excludedKeywords, setExcludedKeywords] = useState<string[]>([]);
-  const [jobMatchLevel, setJobMatchLevel] = useState<number>(50); // Default to middle
+  const [jobMatchLevel, setJobMatchLevel] = useState<number>(1); // Default to Middle (0=Low, 1=Middle, 2=High)
 
 
   // Select an email template
@@ -685,7 +685,8 @@ export default function AutoApplyPage() {
   const onDesiredSalaryCurrencyChange = (value: string) => setDesiredSalaryCurrency(value);
   const onMinSalaryChange = (e: ChangeEvent<HTMLInputElement>) => setMinSalary(e.target.value);
   const onMaxSalaryChange = (e: ChangeEvent<HTMLInputElement>) => setMaxSalary(e.target.value);
-  const onJobMatchLevelChange = (value: number[]) => setJobMatchLevel(value[0]);
+  // Updated handler for the 3-step slider
+  const onJobMatchLevelChange = (value: number[]) => setJobMatchLevel(value[0]); // Value will be 0, 1, or 2
 
   // Handlers for adding/removing keywords/companies
   const handleAddKeyword = (type: 'include' | 'exclude' | 'company') => {
@@ -987,6 +988,20 @@ export default function AutoApplyPage() {
         </Badge>
     );
 
+    // Get descriptive text for job match level
+    const getJobMatchLevelDescription = (level: number): string => {
+        switch (level) {
+        case 0: // Low
+            return "You will be matched with positions that meet only some of your preferences and information of your CV (résumé). We will try to apply to as many jobs as we can, but we risk that some might not be totally suitable for your profile";
+        case 1: // Middle
+            return "You will be matched with positions that meet most of your preferences and information of your CV (résumé). We will try to apply to a lot of seemingly suitable jobs, but we risk that some might not be a 100% match with your profile.";
+        case 2: // High
+            return "You will be matched with positions that meet all your preferences and information of your CV (résumé). We will take extra precautions to narrow down our search and apply only to jobs that match with the most of your specified details, to the degree possible.";
+        default:
+            return "Select the desired level of job matching precision.";
+        }
+    };
+
 
   const renderContent = () => {
      switch(viewState) {
@@ -1058,16 +1073,14 @@ export default function AutoApplyPage() {
                                       Search only for remote jobs
                                   </Label>
                                 </div>
-                                 <div className="flex items-center space-x-2"> {/* Removed premium classes */}
+                                 <div className="flex items-center space-x-2">
                                    <Checkbox
                                        id="searchRemoteAnywhere"
                                        checked={searchRemoteAnywhere}
                                        onCheckedChange={onSearchRemoteAnywhereChange}
-                                       // disabled // Removed disabled attribute
                                    />
-                                   <Label htmlFor="searchRemoteAnywhere" className="text-sm font-normal cursor-pointer flex items-center"> {/* Removed premium classes */}
+                                   <Label htmlFor="searchRemoteAnywhere" className="text-sm font-normal cursor-pointer flex items-center">
                                        Search for remote jobs anywhere in the world
-                                       {/* <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">STANDARD AND PREMIUM MEMBERS ONLY</Badge> */}
                                    </Label>
                                  </div>
                              </div>
@@ -1090,16 +1103,14 @@ export default function AutoApplyPage() {
                                 <p className="text-xs text-muted-foreground">Choose specific platforms if you want to narrow your search. Leave it blank to allow all platforms for your profile.</p>
                              </div>
                               {/* Enable Career Page Search */}
-                              <div className="flex items-center space-x-2"> {/* Removed premium classes */}
+                              <div className="flex items-center space-x-2">
                                  <Checkbox
                                      id="enableCareerPageSearch"
                                      checked={enableCareerPageSearch}
                                      onCheckedChange={onEnableCareerPageSearchChange}
-                                     // disabled // Removed disabled attribute
                                  />
-                                 <Label htmlFor="enableCareerPageSearch" className="text-sm font-normal cursor-pointer flex items-center"> {/* Removed premium classes */}
+                                 <Label htmlFor="enableCareerPageSearch" className="text-sm font-normal cursor-pointer flex items-center">
                                     Enable Career Page Job Search
-                                     {/* <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">PREMIUM MEMBERS ONLY</Badge> */}
                                  </Label>
                               </div>
                              {/* Experience and Job Type */}
@@ -1362,17 +1373,16 @@ export default function AutoApplyPage() {
                                     </div>
                                      <Switch id="autoFillForms" checked={autoFillForms} onCheckedChange={onAutoFillFormsChange} disabled={!masterAutoApply} />
                                 </div>
-                                 <div className="flex items-center justify-between rounded-md border p-4"> {/* Removed premium classes */}
+                                 <div className="flex items-center justify-between rounded-md border p-4">
                                     <div className="space-y-0.5 pr-4">
                                          <Label htmlFor="aiAnswering" className="font-medium flex items-center">
                                              AI answering
-                                            {/* <Badge variant="outline" className="ml-2 text-xs border-yellow-500 text-yellow-600">PREMIUM MEMBERS ONLY</Badge> */}
                                          </Label>
                                          <p className="text-xs text-muted-foreground">
                                             Enable this to let AI handle any question that occur during the application processes.
                                         </p>
                                     </div>
-                                     <Switch id="aiAnswering" checked={aiAnswering} onCheckedChange={onAiAnsweringChange} disabled={!masterAutoApply} /> {/* Removed disabled */}
+                                     <Switch id="aiAnswering" checked={aiAnswering} onCheckedChange={onAiAnsweringChange} disabled={!masterAutoApply} />
                                 </div>
                              </div>
 
@@ -1598,23 +1608,26 @@ export default function AutoApplyPage() {
                                 </div>
                             </div>
 
-                             {/* Job Match Level */}
+                            {/* Job Match Level */}
                             <div className="space-y-3 border-t pt-6">
-                                 <Label htmlFor="jobMatchLevel">Please choose the level of the job match you prefer</Label>
-                                 <p className="text-sm text-muted-foreground">Middle match with your preferences</p>
-                                 <Slider
-                                     id="jobMatchLevel"
-                                     value={[jobMatchLevel]}
-                                     onValueChange={onJobMatchLevelChange}
-                                     max={100}
-                                     step={1}
-                                     className="w-[60%] mx-auto" // Center the slider a bit
-                                 />
-                                 <div className="flex justify-between w-[60%] mx-auto text-xs text-muted-foreground">
-                                     <span>Low</span>
-                                     <span>Middle</span>
-                                     <span>High</span>
-                                 </div>
+                                <Label htmlFor="jobMatchLevel">Please choose the level of the job match you prefer</Label>
+                                {/* Dynamic description based on slider value */}
+                                <p className="text-sm text-muted-foreground min-h-[40px]"> {/* Added min-height */}
+                                    {getJobMatchLevelDescription(jobMatchLevel)}
+                                </p>
+                                <Slider
+                                    id="jobMatchLevel"
+                                    value={[jobMatchLevel]}
+                                    onValueChange={onJobMatchLevelChange}
+                                    max={2} // Set max to 2 for Low(0), Middle(1), High(2)
+                                    step={1} // Step by 1
+                                    className="w-[60%] mx-auto"
+                                />
+                                <div className="flex justify-between w-[60%] mx-auto text-xs text-muted-foreground">
+                                    <span>Low</span>
+                                    <span>Middle</span>
+                                    <span>High</span>
+                                </div>
                             </div>
 
                              {/* Final Note */}
