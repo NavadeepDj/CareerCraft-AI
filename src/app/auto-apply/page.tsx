@@ -241,6 +241,7 @@ I would greatly appreciate the opportunity to discuss how my professional profil
 Thank you for considering my application.
 
 Best regards,
+
 {{USER_FIRSTNAME}} {{USER_LASTNAME}}`
     },
     {
@@ -415,6 +416,7 @@ I have attached my resume for your consideration. Having carefully read the job 
 Thank you for considering my application. I look forward to the possibility of discussing my candidacy in greater detail.
 
 Sincerely,
+
 {{USER_FIRSTNAME}} {{USER_LASTNAME}}`
     },
 ];
@@ -553,7 +555,7 @@ export default function AutoApplyPage() {
   const [autoSendEmails, setAutoSendEmails] = useState<boolean>(false);
   const [autoFillForms, setAutoFillForms] = useState<boolean>(false);
   const [aiAnswering, setAiAnswering] = useState<boolean>(false); // Premium
-  const [phoneCountryCode, setPhoneCountryCode] = useState<string>('+33'); // Example
+  const [phoneCountryCode, setPhoneCountryCode] = useState<string>('+91'); // Default to India
   const [phoneNumber, setPhoneNumber] = useState<string>(''); // Example '06 12 34 56 70'
   const [cityLocation, setCityLocation] = useState<string>('');
   const [coverLetterContent, setCoverLetterContent] = useState<string>(
@@ -746,27 +748,28 @@ export default function AutoApplyPage() {
        await new Promise(resolve => setTimeout(resolve, 700)); // Simulate async operation
 
        // Determine if it's a new template or an update
-       const isUpdatingExisting = selectedEmailTemplateId && allTemplates.find(t => t.id === selectedEmailTemplateId);
+       const isUpdatingExisting = selectedEmailTemplateId && allTemplates.find(t => t.id === selectedEmailTemplateId && t.isUserTemplate); // Only allow saving changes to user templates
+       const isNewTemplate = !selectedEmailTemplateId || !allTemplates.find(t => t.id === selectedEmailTemplateId); // If ID is empty or not found
+
        let updatedTemplates = [...allTemplates];
-       let newTemplateId = selectedEmailTemplateId;
+       let updatedTemplateId = selectedEmailTemplateId;
 
        if (isUpdatingExisting) {
-           // Update existing template
-           updatedTemplates = updatedTemplates.map(template => {
-               if (template.id === selectedEmailTemplateId) {
-                   return {
-                       ...template,
-                       name: emailTemplateName.trim(),
-                       displayName: emailTemplateName.trim(), // Update display name too
-                       subject: emailSubject.trim(),
-                       body: emailBody,
-                       // Preserve isUserTemplate flag
-                   };
-               }
-               return template;
-           });
-           toast({ title: "Template Updated", description: `Template '${emailTemplateName}' saved.` });
-       } else {
+            // Update existing USER template
+            updatedTemplates = updatedTemplates.map(template => {
+                if (template.id === selectedEmailTemplateId) {
+                    return {
+                        ...template,
+                        name: emailTemplateName.trim(),
+                        displayName: emailTemplateName.trim(), // Update display name too
+                        subject: emailSubject.trim(),
+                        body: emailBody,
+                    };
+                }
+                return template;
+            });
+            toast({ title: "Template Updated", description: `Template '${emailTemplateName}' saved.` });
+       } else if (isNewTemplate) {
            // Add new template
            const newTemplate: EmailTemplate = {
                id: `tpl-user-${Date.now()}`, // Generate a temporary unique ID
@@ -777,10 +780,13 @@ export default function AutoApplyPage() {
                isUserTemplate: true, // New templates are always user templates
            };
            updatedTemplates.push(newTemplate);
-           newTemplateId = newTemplate.id; // Store the new ID
+           updatedTemplateId = newTemplate.id; // Store the new ID
            // Automatically select the newly created template
-           setSelectedEmailTemplateId(newTemplateId);
+           setSelectedEmailTemplateId(updatedTemplateId); // Update the selected ID state
            toast({ title: "Template Created", description: `Template '${newTemplate.name}' saved.` });
+       } else {
+            // Trying to save changes to a non-user template (popular template)
+            toast({ title: "Cannot Save", description: "Cannot modify popular templates. Create a new template instead.", variant: "destructive" });
        }
 
 
@@ -1248,6 +1254,8 @@ export default function AutoApplyPage() {
                                              onChange={onEmailTemplateNameChange}
                                              placeholder="e.g., My Standard Application"
                                              required
+                                             // Disable editing name if it's a popular template
+                                             disabled={selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate}
                                          />
                                      </div>
                                       <div className="space-y-1">
@@ -1258,6 +1266,8 @@ export default function AutoApplyPage() {
                                              onChange={onEmailSubjectChange}
                                              placeholder="e.g., Application for {{JOB_TITLE}}"
                                              required
+                                             // Disable editing subject if it's a popular template
+                                             disabled={selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate}
                                          />
                                      </div>
                                       <div className="space-y-1">
@@ -1270,14 +1280,21 @@ export default function AutoApplyPage() {
                                              rows={10}
                                              required
                                              className="min-h-[200px]"
+                                             // Disable editing body if it's a popular template
+                                              disabled={selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate}
                                          />
                                          <p className="text-xs text-muted-foreground">Hint: type {'{{'} to show the suggestions list (feature not implemented). NOTE: We will attach your CV to this email.</p>
                                      </div>
                                      {/* Updated Save Button Style */}
-                                      <Button onClick={handleSaveChanges} variant="default" disabled={isSaving} className="bg-primary text-primary-foreground hover:bg-primary/90">
+                                     {/* Only enable save if it's a new template or a user template */}
+                                      <Button onClick={handleSaveChanges} variant="default" disabled={isSaving || (selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate)} className="bg-primary text-primary-foreground hover:bg-primary/90">
                                          {isSaving ? "Saving..." : "SAVE"}
                                          {hasUnsavedChanges && !isSaving && <span className="ml-2 text-xs opacity-70">(unsaved)</span>}
                                      </Button>
+                                     {selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate && (
+                                          <p className="text-xs text-destructive mt-1">Popular templates cannot be edited. Create a new template to customize.</p>
+                                      )}
+
 
                                      {/* Send Test Email Section */}
                                      <div className="border-t pt-4 mt-4 space-y-2">
@@ -1386,11 +1403,11 @@ export default function AutoApplyPage() {
                                                 <SelectValue placeholder="Code" />
                                             </SelectTrigger>
                                             <SelectContent>
+                                                <SelectItem value="+91">🇮🇳 +91</SelectItem>
                                                 <SelectItem value="+1">🇺🇸 +1</SelectItem>
                                                 <SelectItem value="+44">🇬🇧 +44</SelectItem>
                                                 <SelectItem value="+33">🇫🇷 +33</SelectItem>
                                                 <SelectItem value="+49">🇩🇪 +49</SelectItem>
-                                                <SelectItem value="+91">🇮🇳 +91</SelectItem>
                                                 {/* Add more country codes */}
                                             </SelectContent>
                                         </Select>
@@ -1401,7 +1418,7 @@ export default function AutoApplyPage() {
                                              id="phoneNumber"
                                              value={phoneNumber}
                                              onChange={onPhoneNumberChange}
-                                             placeholder="Example: 06 12 34 56 70"
+                                             placeholder="Example: 9876543210"
                                              required
                                          />
                                     </div>
@@ -1457,10 +1474,10 @@ export default function AutoApplyPage() {
                                             <SelectValue placeholder="Currency" />
                                         </SelectTrigger>
                                         <SelectContent>
+                                            <SelectItem value="INR">INR (₹)</SelectItem>
                                             <SelectItem value="USD">USD ($)</SelectItem>
                                             <SelectItem value="EUR">EUR (€)</SelectItem>
                                             <SelectItem value="GBP">GBP (£)</SelectItem>
-                                            <SelectItem value="INR">INR (₹)</SelectItem>
                                             {/* Add more currencies */}
                                         </SelectContent>
                                     </Select>
