@@ -1376,17 +1376,6 @@ export default function AutoApplyPage() {
                                 </div>
                              </div>
 
-                             {/* Chrome Extension */}
-                             <div className="flex items-center justify-between rounded-md border p-4">
-                                <div className="space-y-0.5">
-                                    <Label className="font-medium">Auto-apply using our Chrome extension</Label>
-                                    <p className="text-xs text-muted-foreground">
-                                        Click the install button on the right to enable our Chrome extension. This will allow you to apply on platforms requiring login.
-                                    </p>
-                                </div>
-                                <Button variant="default" disabled>INSTALL</Button> {/* Simulating disabled install button */}
-                            </div>
-
 
                             {/* Additional Form Fields */}
                              <div className="space-y-4 border-t pt-6">
