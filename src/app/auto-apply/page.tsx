@@ -448,7 +448,7 @@ const Stepper: React.FC<{ currentStep: ConfigureStep }> = ({ currentStep }) => {
 
     return (
         <div className="mb-8 flex items-center justify-center space-x-4 md:space-x-8">
-            {steps.map((step, index) => (
+            {steps.map((index, step) => ( // Fixed: map parameters should be (item, index)
                 <div key={step.id} className="flex items-center">
                     <div
                         className={cn(
@@ -652,12 +652,13 @@ export default function AutoApplyPage() {
 
        setIsSaving(true);
        toast({ title: "Saving Changes (Simulation)", description: `Simulating saving changes to template '${emailTemplateName}'.` });
-       await new Promise(resolve => setTimeout(resolve, 1000));
+       await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate async operation
 
        // Update the template in the local state (for simulation)
         const existingIndex = allTemplates.findIndex(t => t.id === selectedEmailTemplateId);
         if (selectedEmailTemplateId && existingIndex > -1) {
-            // Update existing template
+            // Update existing template if it's a user template or allow editing popular ones (choose behavior)
+             // For now, allow editing any selected template locally
             const updatedTemplates = [...allTemplates];
             updatedTemplates[existingIndex] = {
                 ...updatedTemplates[existingIndex],
@@ -665,10 +666,13 @@ export default function AutoApplyPage() {
                 displayName: emailTemplateName, // Update display name too (or have a separate field)
                 subject: emailSubject,
                 body: emailBody,
+                 isUserTemplate: updatedTemplates[existingIndex].isUserTemplate || false // Preserve user flag or default to false if editing popular
             };
             setAllTemplates(updatedTemplates);
-        } else if (!selectedEmailTemplateId) {
-            // Add new template if it doesn't have an ID (was created)
+             toast({ title: "Template Updated", description: `Template '${emailTemplateName}' updated locally.` });
+
+        } else if (!selectedEmailTemplateId || allTemplates.findIndex(t => t.id === selectedEmailTemplateId) === -1) {
+            // Add new template if it doesn't have an ID or ID doesn't exist (was created)
             const newTemplate: EmailTemplate = {
                 id: `tpl-user-${Date.now()}`, // Generate a temporary unique ID
                 name: emailTemplateName,
@@ -679,12 +683,14 @@ export default function AutoApplyPage() {
             };
             setAllTemplates([...allTemplates, newTemplate]);
             setSelectedEmailTemplateId(newTemplate.id); // Select the newly created template
+            toast({ title: "Template Saved", description: `New template '${emailTemplateName}' created successfully.` });
+        } else {
+            // Handle edge case if needed, e.g., ID exists but wasn't found (shouldn't happen with findIndex logic)
+            toast({ title: "Save Error", description: "Could not determine whether to update or create.", variant: "destructive" });
         }
 
        setIsSaving(false);
        // Stay on the email template step after saving
-       // setConfigureStep('settings'); // Don't move to settings automatically
-       toast({ title: "Template Saved", description: `Template '${emailTemplateName}' saved successfully.` });
   };
 
 
@@ -785,11 +791,11 @@ export default function AutoApplyPage() {
         setConfigureStep('emailTemplate');
     } else if (configureStep === 'emailTemplate') {
          if (!emailTemplateName.trim() || !emailSubject.trim() || !emailBody.trim()) {
-             toast({ title: "Incomplete Email Template", description: "Please ensure the template has name, subject, and body.", variant: "destructive"});
+             toast({ title: "Incomplete Email Template", description: "Please ensure the email template has name, subject, and body.", variant: "destructive"});
              return;
          }
-        // Ensure template changes are saved before moving next (optional, could force save)
-        // await handleSaveChanges(); // Could await save here if needed
+        // No automatic save on next, user must explicitly click SAVE
+        // Consider adding a check for unsaved changes if desired.
         setConfigureStep('settings');
     } else if (configureStep === 'settings') {
         // Add validation for settings if needed
@@ -1112,7 +1118,7 @@ export default function AutoApplyPage() {
                                          <p className="text-xs text-muted-foreground">Hint: type {'{{'} to show the suggestions list (feature not implemented). NOTE: We will attach your CV to this email.</p>
                                      </div>
                                      {/* Updated Save Button Style */}
-                                     <Button onClick={handleSaveChanges} variant="outline" disabled={isSaving}>
+                                     <Button onClick={handleSaveChanges} variant="default" disabled={isSaving}> {/* Changed variant to default */}
                                         {isSaving ? "Saving..." : "SAVE"}
                                      </Button>
 
@@ -1170,7 +1176,7 @@ export default function AutoApplyPage() {
                          <div className="flex items-center gap-2">
                              {/* Show "Save and Run" only on the final (review) step */}
                               {configureStep === 'review' && (
-                                <Button variant="secondary" onClick={handleSaveAndRun}>
+                                <Button variant="default" onClick={handleSaveAndRun}> {/* Changed to default for consistency */}
                                     Save and Run Simulation
                                 </Button>
                              )}
@@ -1182,9 +1188,7 @@ export default function AutoApplyPage() {
                                     <ArrowLeft className="ml-2 h-4 w-4 transform rotate-180" /> {/* Right Arrow */}
                                  </Button>
                               ) : (
-                                  // Optional: Different button text on the last step if needed
-                                  // <Button onClick={handleSaveAndRun}> Start Simulation </Button>
-                                  null // Or simply hide "Next" on the last step if "Save and Run" is primary
+                                  null // Hide "Next" on the last step
                               )}
                          </div>
                     </CardFooter>
@@ -1289,4 +1293,3 @@ export default function AutoApplyPage() {
     </div>
   );
 }
-
