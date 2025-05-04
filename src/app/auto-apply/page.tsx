@@ -992,7 +992,7 @@ export default function AutoApplyPage() {
     const getJobMatchLevelDescription = (level: number): string => {
         switch (level) {
         case 0: // Low
-            return "You will be matched with positions that meet only some of your preferences and information of your CV (résumé). We will try to apply to as many jobs as we can, but we risk that some might not be totally suitable for your profile";
+            return "You will be matched with positions that meet only some of your preferences and information of your CV (résumé). We will try to apply to as many jobs as we can, but we risk that some might not be totally suitable for your profile.";
         case 1: // Middle
             return "You will be matched with positions that meet most of your preferences and information of your CV (résumé). We will try to apply to a lot of seemingly suitable jobs, but we risk that some might not be a 100% match with your profile.";
         case 2: // High
@@ -1611,10 +1611,7 @@ export default function AutoApplyPage() {
                             {/* Job Match Level */}
                             <div className="space-y-3 border-t pt-6">
                                 <Label htmlFor="jobMatchLevel">Please choose the level of the job match you prefer</Label>
-                                {/* Dynamic description based on slider value */}
-                                <p className="text-sm text-muted-foreground min-h-[40px]"> {/* Added min-height */}
-                                    {getJobMatchLevelDescription(jobMatchLevel)}
-                                </p>
+                                {/* Removed dynamic description paragraph here */}
                                 <Slider
                                     id="jobMatchLevel"
                                     value={[jobMatchLevel]}
@@ -1630,12 +1627,12 @@ export default function AutoApplyPage() {
                                 </div>
                             </div>
 
-                             {/* Final Note */}
+                             {/* Final Note - Updated to show dynamic description */}
                               <Alert variant="default" className="bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700">
                                <Info className="h-4 w-4 text-blue-700 dark:text-blue-300" />
                                <AlertTitle className="text-blue-800 dark:text-blue-200">Important Note</AlertTitle>
                                <AlertDescription className="text-blue-700 dark:text-blue-300">
-                                   You will be matched with positions that meet most of your preferences and information of your CV (résumé). We will try to apply to a list of seemingly suitable jobs, but we risk that some might not be a 100% match with your profile.
+                                    {getJobMatchLevelDescription(jobMatchLevel)} {/* Dynamic description here */}
                                </AlertDescription>
                              </Alert>
 
