@@ -4,11 +4,14 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { buttonVariants } from "@/components/ui/button"; // Import buttonVariants
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, GraduationCap, Lightbulb, BookOpen, ExternalLink } from 'lucide-react';
 import LoadingSpinner from '@/components/loading-spinner'; // Updated import
 import { getLearningPath, type Course } from '@/services/learning-path'; // Import the service
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils'; // Import cn
+
 // Removed useAuth import
 
 export default function LearningPathPage() {
@@ -46,13 +49,12 @@ export default function LearningPathPage() {
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
       <header className="mb-8 flex items-center justify-between border-b pb-4">
         <Link href="/" passHref>
-          <Button variant="outline" size="icon" className="hover:bg-primary/10 hover:text-primary"> {/* Updated hover */}
-            <ArrowLeft className="h-5 w-5" />
-            <span className="sr-only">Back to Dashboard</span>
+          <Button variant="outline" size="sm" className="hover:bg-primary/10 hover:text-primary"> {/* Adjusted size */}
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
           </Button>
         </Link>
-        <h1 className="text-2xl font-semibold text-primary">Customized Learning Path</h1>
-         <div className="w-10"></div> {/* Spacer */}
+        <h1 className="text-2xl font-semibold text-primary text-center flex-grow">Customized Learning Path</h1>
+         <div className="w-[150px]"></div> {/* Spacer */}
       </header>
 
       <main>
@@ -92,11 +94,18 @@ export default function LearningPathPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                   <Button variant="link" asChild className="w-full justify-start p-0 h-auto text-primary hover:underline"> {/* Changed link color to primary */}
-                     <a href={course.url} target="_blank" rel="noopener noreferrer">
-                       Go to Course <ExternalLink className="ml-1 h-4 w-4" />
-                     </a>
-                  </Button>
+                   {/* Removed asChild and applied styles directly to the anchor tag */}
+                   <a
+                     href={course.url}
+                     target="_blank"
+                     rel="noopener noreferrer"
+                     className={cn(
+                        buttonVariants({ variant: "link" }), // Use buttonVariants helper
+                        "w-full justify-start p-0 h-auto text-primary hover:underline" // Add specific style overrides
+                     )}
+                   >
+                     Go to Course <ExternalLink className="ml-1 h-4 w-4" />
+                   </a>
                  </CardFooter>
               </Card>
             ))}
