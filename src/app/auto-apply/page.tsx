@@ -4,7 +4,7 @@ import React, { useState, useCallback, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info, BarChart, Check, ArrowRight, Pencil, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react'; // Added Pencil, Chevrons
+import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info, BarChart, Check, ArrowRight, Pencil, ChevronDown, ChevronRight, ChevronLeft, MapPin, Briefcase, Clock, ListFilter, ListX, Ban, DollarSign, Phone, FileText, Send, FileDigit, FormInput } from 'lucide-react'; // Added more icons for review step
 import LoadingSpinner from '@/components/loading-spinner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +25,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Switch } from "@/components/ui/switch"; // Import Switch
 import { Slider } from "@/components/ui/slider"; // Import Slider
+import { Separator } from '@/components/ui/separator'; // Import Separator
 
 
 interface AppliedJob {
@@ -542,6 +543,18 @@ const StatisticsDashboard: React.FC<{ onConfigure: () => void }> = ({ onConfigur
 };
 
 
+// Component to display review details neatly
+const ReviewDetail: React.FC<{ icon: React.ElementType, label: string, value: React.ReactNode }> = ({ icon: Icon, label, value }) => (
+    <div className="flex items-start gap-3 py-2">
+        <Icon className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
+        <div className="flex-grow">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="text-sm font-medium text-foreground">{value || '-'}</p>
+        </div>
+    </div>
+);
+
+
 export default function AutoApplyPage() {
   const { toast } = useToast();
   // Set initial state to 'statistics'
@@ -820,8 +833,8 @@ export default function AutoApplyPage() {
 
   // --- Navigation and Actions ---
 
-  // Handle starting the auto-apply process (simulation) - renamed to "Save and Run"
-  const handleSaveAndRun = async () => {
+  // Handle starting the auto-apply process (simulation) - renamed to "START THE LOOP"
+  const handleStartTheLoop = async () => {
     // ** Run Validations for ALL required steps before simulation **
     // Step 1 Validation
     if (!jobTitles.trim()) {
@@ -963,7 +976,7 @@ export default function AutoApplyPage() {
         setConfigureStep('review');
     } else if (configureStep === 'review') {
         // Review step is the last step before running
-        handleSaveAndRun(); // Trigger simulation from review step's "Next"
+        handleStartTheLoop(); // Trigger simulation from review step's "Next" (now "START THE LOOP")
     }
   };
 
@@ -1036,6 +1049,15 @@ export default function AutoApplyPage() {
         }
     };
 
+  // Helper function to format salary range for display
+  const formatSalaryRange = (min: string, max: string, currency: string): string => {
+    if (!min && !max) return "Any salary";
+    if (min && max) return `${currency} ${min} - ${max}`;
+    if (min) return `From ${currency} ${min}`;
+    if (max) return `Up to ${currency} ${max}`;
+    return "Any salary";
+  };
+
 
 
   const renderContent = () => {
@@ -1046,11 +1068,10 @@ export default function AutoApplyPage() {
          case 'configure':
             // Container for the configuration steps
              return (
-                 
                     <Card className="shadow-lg max-w-5xl mx-auto"> {/* Increased max-width */}
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-xl">
-                            Let's create a new Loop
+                            Automate your job search {/* Updated Title */}
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
@@ -1062,9 +1083,7 @@ export default function AutoApplyPage() {
                                 </Tooltip>
                             </TooltipProvider>
                         </CardTitle>
-                        <CardDescription>
-                            Automate your job search simulation.
-                        </CardDescription>
+                        {/* Removed CardDescription */}
                          {/* Stepper Component */}
                         <Stepper currentStep={configureStep} />
                     </CardHeader>
@@ -1702,7 +1721,6 @@ export default function AutoApplyPage() {
                              <Card>
                                 <CardHeader className="pb-3">
                                     <CardTitle className="text-base font-semibold">Please choose the level of the job match you prefer</CardTitle>
-                                    {/* New paragraph for match level display */}
                                      <p className="text-sm text-primary font-medium">
                                         Our Auto-Apply will <span className="font-bold">{getJobMatchText(jobMatchLevel)}</span> match with your preferences.
                                     </p>
@@ -1721,7 +1739,6 @@ export default function AutoApplyPage() {
                                         <span>High</span>
                                      </div>
 
-                                     {/* Final Note - Updated to show dynamic description */}
                                       <Alert variant="default" className="mt-4 bg-secondary/50">
                                        <Info className="h-4 w-4 text-muted-foreground" />
                                         <AlertTitle className="font-semibold">Important Note</AlertTitle>
@@ -1736,12 +1753,70 @@ export default function AutoApplyPage() {
                       )}
 
 
-                     {/* --- Step 4: Review (Placeholder for now) --- */}
+                     {/* --- Step 4: Review --- */}
                      {configureStep === 'review' && (
-                         <CardContent className="space-y-8 border-t pt-6 text-center">
-                              <h3 className="font-semibold text-lg mb-4">4. Review Your Configuration</h3>
-                               <p className="text-muted-foreground">Review step is not fully implemented yet. <br /> Click "Save and Run" to proceed with simulation using current settings.</p>
-                               {/* Display summary of settings here in the future */}
+                         <CardContent className="space-y-8 border-t pt-6">
+                             <h3 className="font-semibold text-lg mb-4">Review the details and start your loop</h3>
+                             <h2 className="text-2xl font-bold text-primary">{jobTitles}</h2>
+                             <p className="text-sm text-muted-foreground mb-6">Job Title</p>
+
+                              {/* Search Info Section */}
+                             <div className="space-y-4">
+                                 <h4 className="font-semibold text-md text-muted-foreground mb-2">Search Info</h4>
+                                 <ReviewDetail icon={MapPin} label="Job Location" value={searchOnlyRemote ? (searchRemoteAnywhere ? "Remote Anywhere" : "Remote") : jobLocation} />
+                                 <ReviewDetail icon={Search} label="Job Board Platform" value={searchJobBoards} />
+                                 <ReviewDetail icon={Briefcase} label="Experience" value={experienceLevel} />
+                                 <ReviewDetail icon={Clock} label="Job Type" value={jobType} />
+                                 <ReviewDetail icon={ListFilter} label="Keywords" value={includedKeywords.length > 0 ? includedKeywords.join(', ') : "No keywords"} />
+                                 <ReviewDetail icon={ListX} label="Excluded Keywords" value={excludedKeywords.length > 0 ? excludedKeywords.join(', ') : "No keywords"} />
+                                 <ReviewDetail icon={Ban} label="Excluded Companies" value={excludedCompanies.length > 0 ? excludedCompanies.join(', ') : "No excluded companies"} />
+                                 <ReviewDetail icon={DollarSign} label="Salary Range" value={formatSalaryRange(minSalary, maxSalary, desiredSalaryCurrency)} />
+                                 <Separator />
+                             </div>
+
+
+                             {/* Your Info Section */}
+                             <div className="space-y-4">
+                                <h4 className="font-semibold text-md text-muted-foreground mb-2">Your Info</h4>
+                                 <ReviewDetail icon={Phone} label="Phone number" value={`${phoneCountryCode} ${phoneNumber}`} />
+                                 <ReviewDetail icon={FileText} label="Uploaded CV" value={uploadedFile?.name} />
+                                 <ReviewDetail icon={Mail} label="Personal email" value={testEmailRecipient} /> {/* Using test recipient as placeholder */}
+                                 <Separator />
+                              </div>
+
+                             {/* Options Section */}
+                              <div className="space-y-4">
+                                 <h4 className="font-semibold text-md text-muted-foreground mb-2">Options</h4>
+                                  <div className="flex items-center justify-between">
+                                       <ReviewDetail icon={Send} label="Automatic Emails" value="This loop automatically sends emails when we are able to find the company email" />
+                                       <Switch checked={autoSendEmails} disabled className="pointer-events-none"/>
+                                  </div>
+                                  <div className="flex items-center justify-between">
+                                      <ReviewDetail icon={FormInput} label="Automatic Form Applications" value="This loop applies to platforms automatically when possible" />
+                                      <Switch checked={autoFillForms} disabled className="pointer-events-none"/>
+                                  </div>
+                                 <Separator />
+                              </div>
+
+
+                             {/* Email Template Preview Section */}
+                             <div className="space-y-4">
+                                 <h4 className="font-semibold text-md text-muted-foreground mb-2">Email Template</h4>
+                                 <div className="p-4 border rounded-md bg-secondary/50 text-sm">
+                                     <p className="font-medium mb-2">Subject: {emailSubject}</p>
+                                     <div className="whitespace-pre-wrap">{emailBody}</div>
+                                 </div>
+                                 <Separator />
+                              </div>
+
+
+                              {/* Cover Letter Preview Section */}
+                             <div className="space-y-4">
+                                 <h4 className="font-semibold text-md text-muted-foreground mb-2">Cover Letter</h4>
+                                 <div className="p-4 border rounded-md bg-secondary/50 text-sm whitespace-pre-wrap">
+                                     {coverLetterContent}
+                                 </div>
+                              </div>
                          </CardContent>
                      )}
 
@@ -1756,32 +1831,26 @@ export default function AutoApplyPage() {
                             </Link>
                          ) : (
                             <Button variant="outline" onClick={handlePreviousStep}>
-                                 <ChevronLeft className="mr-2 h-4 w-4"/> PREVIOUS {/* Changed label */}
+                                 <ChevronLeft className="mr-2 h-4 w-4"/> PREVIOUS
                             </Button>
                          )}
 
                          {/* Action Buttons */}
                          <div className="flex gap-2">
-                             {/* Show "Save and Run" only on the final (review) step or settings step */}
-                              {(configureStep === 'review' || configureStep === 'settings') && (
+                             {/* Show "START THE LOOP" only on the final (review) step */}
+                              {configureStep === 'review' ? (
                                 <Button
                                     variant="default"
-                                    onClick={handleSaveAndRun}
+                                    onClick={handleStartTheLoop} // Use the specific handler
                                     className="bg-primary text-primary-foreground hover:bg-primary/90" // Explicit black/white
                                 >
-                                    <Play className="mr-2 h-4 w-4"/> SAVE AND RUN {/* Changed label */}
+                                    START THE LOOP {/* Changed label */}
                                 </Button>
-                             )}
-
-
-                             {/* Show "Next" on all steps except the last one */}
-                              {configureStep !== 'review' ? (
+                             ) : (
                                 <Button onClick={handleNextStep}>
                                     NEXT <ChevronRight className="ml-2 h-4 w-4"/>
                                  </Button>
-                              ) : (
-                                  null // Hide "Next" on the last step
-                              )}
+                             )}
                          </div>
                     </CardFooter>
                 </Card>
