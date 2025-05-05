@@ -334,13 +334,13 @@ export default function ResumeBuilderPage() {
                             onClick={() => handleTemplateSelect(template.id)}
                             aria-label={`Select ${template.name} template`}
                         >
-                             {/* Preview Area - Adjusted styling */}
+                             {/* Preview Area - Adjusted height, padding, scale, and added bg-secondary for container */}
                             <div
-                                className="h-[350px] w-full overflow-hidden border-b bg-secondary p-1 flex justify-center items-start" // Reduced height, padding
+                                className="h-[400px] w-full overflow-hidden border-b bg-secondary p-2 flex justify-center items-start" // Adjusted height, padding
                                 data-ai-hint={template.aiHint}
                             >
                                 <div
-                                    className="document-preview w-[210mm] min-h-[297mm] scale-[0.35] origin-top bg-white p-4 shadow-md" // Reduced scale further, origin-top
+                                     className="document-preview w-[210mm] min-h-[297mm] scale-[0.4] origin-top bg-white p-4 shadow-md" // Adjusted scale, origin-top
                                     dangerouslySetInnerHTML={{ __html: templatePreviews[template.id] || '<p>Loading preview...</p>' }}
                                 />
                             </div>
