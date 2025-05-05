@@ -331,81 +331,83 @@ body {
 
 /* Apply Tailwind Typography prose styles specifically to the resume preview */
 /* Ensure specificity if needed */
-.document-preview.prose {
-  color: hsl(var(--foreground)); /* Ensure text color matches theme foreground */
-  max-width: none; /* Allow it to fill container */
-  font-size: 11pt; /* Standard Word doc font size */
-  line-height: 1.5; /* Adjust line height to be slightly more spaced */
+.document-preview {
+  @apply prose prose-sm max-w-none; /* Use Tailwind prose for base styles */
+  color: hsl(var(--foreground));
   font-family: 'Times New Roman', Times, serif; /* Default DOCX font */
-}
+  font-size: 11pt; /* Standard Word doc font size */
+  line-height: 1.25; /* Adjust line height for typical document feel */
 
-.document-preview.prose h1,
-.document-preview.prose h2,
-.document-preview.prose h3,
-.document-preview.prose h4,
-.document-preview.prose h5,
-.document-preview.prose h6 {
-  color: hsl(var(--primary)); /* Use primary color for headings */
-  margin-top: 0.8em; /* Adjusted spacing */
-  margin-bottom: 0.4em;
-  font-weight: 600;
-  line-height: 1.2; /* Tighter line height for headings */
-}
-/* Specific heading sizes (adjust as needed) */
-.document-preview.prose h1 { font-size: 16pt; }
-.document-preview.prose h2 { font-size: 14pt; }
-.document-preview.prose h3 { font-size: 12pt; }
+   /* Header specific styles */
+  header {
+    @apply text-center mb-4 border-b border-black pb-2; /* Added border and adjusted spacing */
+    h1 {
+        @apply text-2xl font-bold mb-0.5; /* Reduced margin bottom */
+    }
+    .job-title {
+       @apply text-sm font-semibold text-primary mb-1; /* Smaller font, adjusted margin */
+    }
+    .contact-info {
+       @apply text-xs;
+        .separator { @apply mx-1; } /* Spacing for separators */
+    }
+    hr {
+      @apply border-t border-black my-2; /* Ensure HR is visible and styled */
+    }
+  }
 
-.document-preview.prose p {
-  margin-top: 0; /* Remove default top margin */
-  margin-bottom: 0.5em; /* Spacing between paragraphs */
-}
+   /* Section specific styles */
+  section {
+    @apply mb-3; /* Consistent bottom margin for sections */
+  }
 
-.document-preview.prose ul,
-.document-preview.prose ol {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  padding-left: 1.5em; /* Standard indentation for lists */
-}
+   /* Section title styles */
+  .section-title {
+      @apply text-sm font-bold uppercase tracking-wider border-b border-black mb-1 pb-0.5; /* Mimic Word heading styles */
+      color: hsl(var(--primary)); /* Use primary color */
+  }
 
-.document-preview.prose li {
-  margin-top: 0.25em;
-  margin-bottom: 0.25em;
-}
+   /* Paragraph styles */
+  p {
+    @apply mt-0 mb-1; /* Reduced paragraph margins */
+     /* Handle empty paragraphs used for spacing - removed problematic @apply */
+     /* The h-4 class can be applied directly where needed, or use min-height */
+  }
+  /* Add specific class for empty paragraphs if needed */
+  p.empty-paragraph-spacer {
+    @apply h-4 mb-0; /* Apply height and margin directly */
+  }
 
-/* Prevent extra margins inside list item paragraphs */
-.document-preview.prose li > p {
-  margin: 0;
-}
+   /* Basic list styles */
+  ul.simple-list {
+     @apply list-none p-0 m-0;
+     li { @apply mb-0.5; }
+  }
 
-.document-preview.prose a {
-  color: hsl(var(--primary)); /* Use primary instead of accent */
-  text-decoration: underline;
-   font-weight: inherit; /* Ensure links don't get extra bold */
-}
-.document-preview.prose strong {
-    font-weight: 600; /* Slightly bolder */
-    color: inherit; /* Ensure strong tags use foreground color */
-}
-/* Ensure break tags work as expected for line breaks - NO extra space needed */
-.document-preview.prose br {
-    content: "";
-    display: block;
-    margin-bottom: 0; /* No margin for <br> */
-}
+  /* List items rendered by formatMultilineText */
+  .pl-4.relative::before {
+     line-height: inherit; /* Align bullet with text */
+  }
 
-/* Example of targeting specific injected sections if needed */
-.document-preview .employment-item {
-  /* Styles for employment items */
-  margin-bottom: 1em; /* Space between job entries */
-}
-.document-preview .education-item {
-  /* Styles for education items */
-   margin-bottom: 1em; /* Space between education entries */
-}
-.document-preview .project-item {
-  /* Styles for project items */
-  margin-bottom: 1em; /* Space between project entries */
+
+  /* Adjust link styles if needed */
+  a {
+    color: hsl(var(--primary));
+    text-decoration: underline;
+    font-weight: inherit;
+  }
+
+  strong {
+      font-weight: 600;
+      color: inherit;
+  }
+
+  /* Ensure line breaks work as expected */
+  br {
+     content: "";
+     display: block;
+     margin-bottom: 0;
+  }
 }
 
 /* Styles for AI Explanation in Analysis page */

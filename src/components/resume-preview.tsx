@@ -8,105 +8,136 @@ interface ResumePreviewProps {
 }
 
 /**
- * Renders a styled HTML preview of the resume, mimicking a DOCX document.
+ * Renders a styled HTML preview of the resume, attempting to mimic a DOCX document.
+ * Relies on styles defined in globals.css under the .document-preview class.
  */
 const ResumePreview: React.FC<ResumePreviewProps> = ({ data }) => {
 
-  // Helper to format multi-line text (like education, projects, etc.)
+  // Helper to format multi-line text, handling potential empty lines and basic structure
   const formatMultilineText = (text: string) => {
-    return text.split('\n').map((line, index) => (
-      // Using <p> for each line and adding margin for spacing between entries (double line breaks)
-      <p key={index} className={cn(line.trim() === '' ? 'mt-2' : '')}>
-        {line || <>&nbsp;</>} {/* Render non-breaking space for empty lines to maintain spacing */}
-      </p>
-    ));
+     // Split by double newline first for paragraphs, then single for lines within
+     return text.split('\n\n').map((paragraph, pIndex) => (
+         <p key={`p-${pIndex}`} className={paragraph.trim() === '' ? 'h-4' : 'mb-2'}>
+             {paragraph.split('\n').map((line, lIndex) => {
+                 // Basic handling for potential list-like items (starting with - or *)
+                 if (line.trim().startsWith('- ') || line.trim().startsWith('* ')) {
+                     return (
+                         <span key={`l-${pIndex}-${lIndex}`} className="block pl-4 relative before:content-['•'] before:absolute before:left-0">
+                           {line.trim().substring(2)}
+                         </span>
+                     );
+                 }
+                 // Render line breaks within paragraph for single newlines
+                 return (
+                     <React.Fragment key={`l-${pIndex}-${lIndex}`}>
+                       {line}
+                       <br />
+                     </React.Fragment>
+                 );
+             }).slice(0, -1)} {/* Remove trailing <br> added by map */}
+         </p>
+     ));
   };
 
+  // Helper to format simple lists (like skills, languages)
+   const formatSimpleList = (text: string, separator: string | RegExp = '\n') => {
+     return text.split(separator).map((item, index) => (
+       item.trim() && <li key={index}>{item.trim()}</li>
+     ));
+   };
+
   return (
-    // A4-like aspect ratio container with padding and background
-    <div className="p-8 bg-white text-black aspect-[210/297] w-[210mm] min-h-[297mm] mx-auto my-4 shadow-lg">
-      {/* Using prose for basic document styling */}
-       <article className="prose prose-sm max-w-none document-preview"> {/* Applied new class */}
-        {/* Header Section */}
-        <header className="text-center mb-6 border-b pb-4">
-          <h1 className="text-2xl font-bold mb-1">{data.firstName} {data.lastName}</h1>
-          <p className="text-base font-semibold text-primary mb-2">{data.jobTitle}</p>
-          <div className="flex justify-center gap-4 text-xs">
-            <span>{data.address}</span>
-            <span>|</span>
-            <span>{data.phone}</span>
-            <span>|</span>
-            <span>{data.email}</span>
+    // A4-like container with padding and background, applying document-preview styles
+    <div className="p-[2.5cm] bg-white text-black aspect-[210/297] w-[210mm] min-h-[297mm] mx-auto my-4 shadow-lg overflow-auto">
+       <article className="prose prose-sm max-w-none document-preview">
+        {/* Header Section - Centered */}
+        <header className="text-center mb-6">
+          <h1 className="text-2xl font-bold mb-1 name">{data.firstName} {data.lastName}</h1>
+          {data.jobTitle && <p className="text-base font-semibold text-primary mb-2 job-title">{data.jobTitle}</p>}
+          <div className="flex justify-center flex-wrap gap-x-3 gap-y-1 text-xs contact-info">
+            {data.address && <span>{data.address}</span>}
+            {data.address && (data.phone || data.email) && <span className="separator">|</span>}
+            {data.phone && <span>{data.phone}</span>}
+            {data.phone && data.email && <span className="separator">|</span>}
+            {data.email && <span>{data.email}</span>}
           </div>
+           {/* Add a horizontal line after header */}
+           <hr className="border-t border-black my-4" />
         </header>
 
         {/* Profile Summary */}
         {data.profile && (
-          <section className="mb-4">
-            <h2 className="text-base font-bold border-b mb-2 pb-1">Profile Summary</h2>
+          <section className="mb-4 profile-summary">
+            <h2 className="section-title">Profile Summary</h2>
             <p>{data.profile}</p>
           </section>
         )}
 
         {/* Skills */}
         {data.skills && (
-          <section className="mb-4">
-            <h2 className="text-base font-bold border-b mb-2 pb-1">Skills</h2>
-            {/* Display skills possibly as a list or comma-separated */}
-            <p>{data.skills}</p>
-            {/* Or alternatively, as a list:
-            <ul className="list-disc pl-5">
-              {data.skills.split(',').map((skill, index) => skill.trim() && <li key={index}>{skill.trim()}</li>)}
-            </ul>
-            */}
+          <section className="mb-4 skills">
+            <h2 className="section-title">Skills</h2>
+             {/* Display skills as a simple comma-separated line or basic list */}
+             <p>{data.skills.split(',').map(s => s.trim()).join(' • ')}</p>
+             {/* Alternatively, a simple list:
+             <ul className="simple-list">
+               {formatSimpleList(data.skills, ',')}
+             </ul>
+             */}
           </section>
         )}
 
-        {/* Education */}
-        {data.education && (
-          <section className="mb-4">
-            <h2 className="text-base font-bold border-b mb-2 pb-1">Education</h2>
-            <div>{formatMultilineText(data.education)}</div>
-          </section>
-        )}
-
-         {/* Academic Projects */}
-         {data.academicProjects && (
-          <section className="mb-4">
-            <h2 className="text-base font-bold border-b mb-2 pb-1">Academic Projects</h2>
-             <div>{formatMultilineText(data.academicProjects)}</div>
+         {/* Education */}
+         {data.education && (
+           <section className="mb-4 education">
+             <h2 className="section-title">Education</h2>
+             {/* Use the multiline formatter */}
+             {formatMultilineText(data.education)}
            </section>
          )}
+
 
          {/* Employment History */}
          {data.employmentHistory && (
-           <section className="mb-4">
-             <h2 className="text-base font-bold border-b mb-2 pb-1">Employment History</h2>
-             <div>{formatMultilineText(data.employmentHistory)}</div>
+           <section className="mb-4 employment">
+             <h2 className="section-title">Employment History</h2>
+              {formatMultilineText(data.employmentHistory)}
            </section>
          )}
 
+
+         {/* Academic Projects */}
+         {data.academicProjects && (
+           <section className="mb-4 projects">
+             <h2 className="section-title">Academic Projects</h2>
+             {formatMultilineText(data.academicProjects)}
+           </section>
+         )}
+
+
         {/* Languages */}
         {data.languages && (
-          <section className="mb-4">
-            <h2 className="text-base font-bold border-b mb-2 pb-1">Languages</h2>
-            <div>{formatMultilineText(data.languages)}</div>
+          <section className="mb-4 languages">
+            <h2 className="section-title">Languages</h2>
+             <ul className="simple-list">
+               {formatSimpleList(data.languages)}
+             </ul>
           </section>
         )}
 
         {/* Hobbies */}
         {data.hobbies && (
-          <section className="mb-4">
-            <h2 className="text-base font-bold border-b mb-2 pb-1">Hobbies</h2>
+          <section className="mb-4 hobbies">
+            <h2 className="section-title">Hobbies</h2>
             <p>{data.hobbies}</p>
           </section>
         )}
 
         {/* References */}
         {data.references && (
-          <section>
-            <h2 className="text-base font-bold border-b mb-2 pb-1">References</h2>
-            <div>{formatMultilineText(data.references)}</div>
+          <section className="references">
+            <h2 className="section-title">References</h2>
+            {formatMultilineText(data.references)}
           </section>
         )}
       </article>
