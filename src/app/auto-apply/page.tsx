@@ -456,7 +456,7 @@ const Stepper: React.FC<{ currentStep: ConfigureStep }> = ({ currentStep }) => {
 
     return (
         <div className="mb-8 flex items-center justify-center space-x-4 md:space-x-8">
-            {steps.map((step, index) => ( // Fixed: map parameters should be (item, index)
+            {steps.map((step, index) => (
                 <div key={step.id} className="flex items-center"> {/* Ensure key is on the outer element */}
                     <div
                         className={cn(
@@ -559,6 +559,7 @@ export default function AutoApplyPage() {
   const [experienceLevel, setExperienceLevel] = useState<string>('');
   const [jobType, setJobType] = useState<string>('');
   const [isClient, setIsClient] = useState(false);
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY; // Store key in variable
 
   useEffect(() => {
     setIsClient(true); // Indicate component has mounted client-side
@@ -1215,9 +1216,9 @@ export default function AutoApplyPage() {
                              {/* Job Location */}
                             <div className="space-y-2">
                                 <Label htmlFor="jobLocation">Job Location</Label>
-                                {isClient ? ( // Render Autocomplete only on client
+                                {isClient && googleMapsApiKey ? ( // Render Autocomplete only on client AND if API key exists
                                      <GooglePlacesAutocomplete
-                                        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} // Ensure this is set in your .env.local
+                                        apiKey={googleMapsApiKey} // Use stored variable
                                         selectProps={{
                                             value: jobLocation,
                                             onChange: onJobLocationChange,
@@ -1237,14 +1238,14 @@ export default function AutoApplyPage() {
                                          value={jobLocation?.label || ''} // Display label if object exists
                                          onChange={(e) => onJobLocationChange({ label: e.target.value, value: { description: e.target.value } })} // Basic text input simulation
                                          placeholder="e.g., Remote, New York, London"
-                                         disabled={searchOnlyRemote || !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} // Disable if API key missing
+                                         disabled={searchOnlyRemote || !isClient || !googleMapsApiKey} // Also disable if not client-side
                                      />
                                 )}
                                 {!searchOnlyRemote && <p className="text-xs text-muted-foreground">
                                     Specify city, state, country, or "Remote". Required if not searching only remote.
                                 </p>}
                                 {!isClient && <p className="text-xs text-destructive mt-1">Location autocomplete requires client-side rendering.</p>}
-                                {isClient && !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && <p className="text-xs text-destructive mt-1">Google Maps API key is missing. Location autocomplete disabled.</p>}
+                                {isClient && !googleMapsApiKey && <p className="text-xs text-destructive mt-1">Google Maps API key is missing. Location autocomplete disabled.</p>}
                             </div>
                             {/* Checkboxes */}
                              <div className="space-y-3">
@@ -1637,9 +1638,9 @@ export default function AutoApplyPage() {
                                      {/* City */}
                                      <div className="space-y-1">
                                          <Label htmlFor="cityLocation">City <span className="text-destructive">*</span></Label>
-                                          {isClient ? (
+                                          {isClient && googleMapsApiKey ? ( // Check client and API key
                                               <GooglePlacesAutocomplete
-                                                 apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                                                 apiKey={googleMapsApiKey} // Use variable
                                                  selectProps={{
                                                       value: cityLocation,
                                                       onChange: onCityLocationChange,
@@ -1660,11 +1661,11 @@ export default function AutoApplyPage() {
                                                  placeholder="Location that you are based in"
                                                  required
                                                  className="h-9 text-xs"
-                                                 disabled={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                                                 disabled={!isClient || !googleMapsApiKey} // Also disable if not client-side
                                              />
                                          )}
                                          {!isClient && <p className="text-xs text-destructive mt-1">Location autocomplete requires client-side rendering.</p>}
-                                         {isClient && !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && <p className="text-xs text-destructive mt-1">Google Maps API key is missing. Location autocomplete disabled.</p>}
+                                         {isClient && !googleMapsApiKey && <p className="text-xs text-destructive mt-1">Google Maps API key is missing. Location autocomplete disabled.</p>}
                                      </div>
 
 
