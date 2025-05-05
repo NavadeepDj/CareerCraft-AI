@@ -4,7 +4,7 @@ import React, { useState, useCallback, ChangeEvent } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info, BarChart, Check, ArrowRight, Pencil } from 'lucide-react'; // Added Pencil
+import { ArrowLeft, UploadCloud, Search, FileUp, Bot, Play, CircleCheck, CircleX, List, Settings, RefreshCcw, Share2, FileCheck, Mail, AlertTriangle, Info, BarChart, Check, ArrowRight, Pencil, ChevronDown, ChevronRight, ChevronLeft } from 'lucide-react'; // Added Pencil, Chevrons
 import LoadingSpinner from '@/components/loading-spinner';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -305,6 +305,7 @@ You can find my cv attached. Let me know if you need any other detail.
 I would love to talk to you soon.
 
 Thanks,
+
 {{USER_FIRSTNAME}} {{USER_LASTNAME}}`
     },
     {
@@ -469,7 +470,7 @@ const Stepper: React.FC<{ currentStep: ConfigureStep }> = ({ currentStep }) => {
 
     return (
         <div className="mb-8 flex items-center justify-center space-x-4 md:space-x-8">
-            {steps.map((step, index) => (
+            {steps.map((step, index) => ( // Fixed: map parameters should be (item, index)
                 <div key={step.id} className="flex items-center">
                     <div
                         className={cn(
@@ -510,37 +511,33 @@ const StatisticsDashboard: React.FC<{ onConfigure: () => void }> = ({ onConfigur
   ];
 
   return (
-    
-        
-            
+    <Card className="shadow-lg max-w-4xl mx-auto">
+        <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-semibold">
                 Statistics
-            
-            
-                Overview of your automated job application activity.
-            
-        
-        
-            
-                {stats.map((stat) => (
-                
-                    
-                        <stat.icon className="h-8 w-8 text-muted-foreground mb-2" />
-                        
-{stat.value}
-                        
-{stat.title}
-                    
+            </CardTitle>
+            <CardDescription>
+                 Overview of your automated job application activity.
+            </CardDescription>
+        </CardHeader>
+        <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                {stats.map((stat, index) => (
+                <div key={index} className="flex flex-col items-center p-4 bg-secondary rounded-lg">
+                    <stat.icon className="h-8 w-8 text-muted-foreground mb-2" />
+                    <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                    <div className="text-sm text-muted-foreground mt-1">{stat.title}</div>
+                </div>
                 ))}
-            
-        
-        
-            
-                
-                    Configure New Simulation Loop
-                
-            
-        
-    
+            </div>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+            <Button size="lg" onClick={onConfigure}>
+                <Play className="mr-2 h-5 w-5" />
+                Configure New Simulation Loop
+            </Button>
+        </CardFooter>
+    </Card>
   );
 };
 
@@ -1002,13 +999,13 @@ export default function AutoApplyPage() {
 
     // Helper component for keyword/company list items
     const ItemChip: React.FC<{ label: string; onRemove: () => void }> = ({ label, onRemove }) => (
-        
+        <Badge variant="secondary" className="flex items-center gap-1">
             {label}
-            
+            <button onClick={onRemove} className="rounded-full hover:bg-muted-foreground/20 p-0.5">
                 <CircleX className="h-3 w-3" />
                 <span className="sr-only">Remove {label}</span>
-            
-        
+            </button>
+        </Badge>
     );
 
     // Get descriptive text for job match level
@@ -1047,795 +1044,861 @@ export default function AutoApplyPage() {
             return <StatisticsDashboard onConfigure={navigateToConfigure} />;
 
          case 'configure':
-            // This structure was causing the parsing error. Ensure it's valid JSX.
-            return (
+            // Container for the configuration steps
+             return (
                  
-                    
-                    
-                        
+                    <Card className="shadow-lg max-w-5xl mx-auto"> {/* Increased max-width */}
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2 text-xl">
                             Let's create a new Loop
-                             
-                               
-                                  
-                                       
-                                       
-                                            A "Loop" represents an automated job search  and application simulation based on your criteria.
-                                       
-                                  
-                               
-                             
-                         
-                        
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>A "Loop" represents an automated job search <br /> and application simulation based on your criteria.</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </CardTitle>
+                        <CardDescription>
                             Automate your job search simulation.
-                        
+                        </CardDescription>
                          {/* Stepper Component */}
-                        
-                    
-                    
+                        <Stepper currentStep={configureStep} />
+                    </CardHeader>
+
 
                     {/* --- Step 1: Search Info --- */}
                     {configureStep === 'searchInfo' && (
-                         
-                            
-3. Complete your desired job info and location
+                         <CardContent className="space-y-8 border-t pt-6">
+                            <h3 className="font-semibold text-lg mb-4">1. Complete your desired job info and location</h3>
 
                              {/* Job Titles */}
-                             
-                                
-                                    Job Titles 
-                                
-                                
-                                    e.g., Software Engineer, Product Manager
-                                
-                                
+                             <div className="space-y-2">
+                                <Label htmlFor="jobTitles">
+                                    Job Titles <span className="text-destructive">*</span>
+                                </Label>
+                                <Input
+                                    id="jobTitles"
+                                    value={jobTitles}
+                                    onChange={onJobTitlesChange}
+                                    placeholder="e.g., Software Engineer, Product Manager"
+                                    required
+                                />
+                                <p className="text-xs text-muted-foreground">
                                     This job title will be used to search for jobs around the web. Separate multiple titles with commas.
-                                
-                            
+                                </p>
+                            </div>
                              {/* Job Location */}
-                            
-                                
-                                    Job Location
-                                
-                                
-                                    e.g., Remote, New York, London
-                                
-                                {!searchOnlyRemote && 
-                                    Specify city, state, country, or "Remote".
-}
-                            
+                            <div className="space-y-2">
+                                <Label htmlFor="jobLocation">Job Location</Label>
+                                <Input
+                                    id="jobLocation"
+                                    value={jobLocation}
+                                    onChange={onJobLocationChange}
+                                    placeholder="e.g., Remote, New York, London"
+                                    disabled={searchOnlyRemote} // Disable if only remote is checked
+                                    required={!searchOnlyRemote} // Require if not searching only remote
+                                />
+                                {!searchOnlyRemote && <p className="text-xs text-muted-foreground">
+                                    Specify city, state, country, or "Remote". Required if not searching only remote.
+                                </p>}
+                            </div>
                             {/* Checkboxes */}
-                             
-                                
-                                  
-                                      
-Search only for remote jobs
-                                  
-                               
-                                
-                                   
-                                       
-Search for remote jobs anywhere in the world
-                                   
-                               
-                             
+                             <div className="space-y-3">
+                                <div className="flex items-center space-x-2">
+                                  <Checkbox id="searchOnlyRemote" checked={searchOnlyRemote} onCheckedChange={onSearchOnlyRemoteChange} />
+                                  <Label htmlFor="searchOnlyRemote" className="font-normal">
+                                       Search only for remote jobs
+                                  </Label>
+                                </div>
+                                <div className={cn("flex items-center space-x-2 pl-6", !searchOnlyRemote && "opacity-50")}> {/* Indent and disable visually */}
+                                   <Checkbox
+                                       id="searchRemoteAnywhere"
+                                       checked={searchRemoteAnywhere}
+                                       onCheckedChange={onSearchRemoteAnywhereChange}
+                                       disabled={!searchOnlyRemote}
+                                   />
+                                   <Label htmlFor="searchRemoteAnywhere" className={cn("font-normal", !searchOnlyRemote && "text-muted-foreground")}>
+                                       Search for remote jobs anywhere in the world
+                                   </Label>
+                               </div>
+                             </div>
                             {/* Search Job Boards */}
-                             
-                                
-                                    Search in Specific Job Boards
-                                
-                                
-                                    
-                                        
-                                            Select job boards...
-                                        
-                                        
-                                            
-                                                All Platforms
-                                            
-                                            
-                                                LinkedIn
-                                            
-                                            
-                                                Indeed
-                                            
-                                            
-                                                Glassdoor
-                                            
-                                            
-                                                Wellfound (AngelList Talent)
-                                            
-                                            {/* Add more platforms */}
-                                        
-                                    
-                                
-                                
+                             <div className="space-y-2">
+                                <Label htmlFor="searchJobBoards">Search in Specific Job Boards</Label>
+                                <Select value={searchJobBoards} onValueChange={onSearchJobBoardsChange}>
+                                    <SelectTrigger id="searchJobBoards">
+                                        <SelectValue placeholder="Select job boards..." />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="All">All Platforms</SelectItem>
+                                        <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                                        <SelectItem value="Indeed">Indeed</SelectItem>
+                                        <SelectItem value="Glassdoor">Glassdoor</SelectItem>
+                                        <SelectItem value="Wellfound">Wellfound (AngelList Talent)</SelectItem>
+                                        {/* Add more platforms */}
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-muted-foreground">
                                     Choose specific platforms if you want to narrow your search. Leave it blank to allow all platforms for your profile.
-                                
-                             
+                                </p>
+                             </div>
                               {/* Enable Career Page Search */}
-                              
-                                 
-                                    
-                                       Enable Career Page Job Search
-                                    
-                                 
-                              
+                              <div className="flex items-center space-x-2">
+                                 <Checkbox id="enableCareerPageSearch" checked={enableCareerPageSearch} onCheckedChange={onEnableCareerPageSearchChange} />
+                                 <Label htmlFor="enableCareerPageSearch" className="font-normal">
+                                     <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <span className="flex items-center gap-1">
+                                                    Enable Career Page Job Search
+                                                     <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                                                </span>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Allows searching directly on company career pages.<br /> (This is a simulation feature)</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                     </TooltipProvider>
+                                 </Label>
+                              </div>
+
 
                              {/* Experience and Job Type */}
-                             
-                                  
-                                      
-                                          Experience 
-                                      
-                                      
-                                          
-                                              Select experience...
-                                          
-                                          
-                                              
-                                                  Entry-level
-                                              
-                                              
-                                                  Junior
-                                              
-                                              
-                                                  Mid-level
-                                              
-                                              
-                                                  Senior
-                                              
-                                              
-                                                  Lead
-                                              
-                                              
-                                                  Manager
-                                              
-                                          
-                                      
-                                  
-                                   
-                                      
-                                          Job Type 
-                                      
-                                      
-                                          
-                                              Select job type...
-                                          
-                                          
-                                              
-                                                  Full time
-                                              
-                                              
-                                                  Part time
-                                              
-                                              
-                                                  Contract
-                                              
-                                              
-                                                  Internship
-                                              
-                                              
-                                                  Temporary
-                                              
-                                          
-                                      
-                                  
-                             
-                            
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                  <div className="space-y-2">
+                                      <Label htmlFor="experienceLevel">
+                                          Experience <span className="text-destructive">*</span>
+                                      </Label>
+                                      <Select value={experienceLevel} onValueChange={onExperienceLevelChange} required>
+                                          <SelectTrigger id="experienceLevel">
+                                              <SelectValue placeholder="Select experience..." />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                              <SelectItem value="Entry-level">Entry-level</SelectItem>
+                                              <SelectItem value="Junior">Junior</SelectItem>
+                                              <SelectItem value="Mid-level">Mid-level</SelectItem>
+                                              <SelectItem value="Senior">Senior</SelectItem>
+                                              <SelectItem value="Lead">Lead</SelectItem>
+                                              <SelectItem value="Manager">Manager</SelectItem>
+                                          </SelectContent>
+                                      </Select>
+                                  </div>
+                                   <div className="space-y-2">
+                                      <Label htmlFor="jobType">
+                                          Job Type <span className="text-destructive">*</span>
+                                      </Label>
+                                      <Select value={jobType} onValueChange={onJobTypeChange} required>
+                                          <SelectTrigger id="jobType">
+                                              <SelectValue placeholder="Select job type..." />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                              <SelectItem value="Full time">Full time</SelectItem>
+                                              <SelectItem value="Part time">Part time</SelectItem>
+                                              <SelectItem value="Contract">Contract</SelectItem>
+                                              <SelectItem value="Internship">Internship</SelectItem>
+                                              <SelectItem value="Temporary">Temporary</SelectItem>
+                                          </SelectContent>
+                                      </Select>
+                                  </div>
+                             </div>
+
 
                             {/* File Upload Area */}
-                             
-                                
-                                    Upload your CV (resume) 
-                                
-                                 
-                                    
-                                        
+                             <div className="space-y-2">
+                                <Label htmlFor="resumeFileInput">
+                                    Upload your CV (resume) <span className="text-destructive">*</span>
+                                </Label>
+                                 <Alert variant="default" className="bg-secondary border-secondary-foreground/10">
+                                    <Info className="h-4 w-4" />
+                                    <AlertDescription className="text-xs">
+                                        <p className="font-medium mb-1">
                                             CURRENTLY SELECTED: {uploadedFile ? uploadedFile.name : "NO CVS UPLOADED YET"}
-                                        
+                                        </p>
                                         To get the most out of our platform, uploading your CV is important. Here's why:
-                                        
-                                            
-Automate your applications by having your CV automatically attached to emails sent to companies.
-                                            
-Apply directly to online forms effortlessly.
-                                            
-Get better job matches tailored to your experience and skills.
-                                        
-                                    
-                                 
-                                    
+                                        <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                                            <li>Automate your applications by having your CV automatically attached to emails sent to companies.</li>
+                                            <li>Apply directly to online forms effortlessly.</li>
+                                            <li>Get better job matches tailored to your experience and skills.</li>
+                                        </ul>
+                                    </AlertDescription>
+                                 </Alert>
+                                <div
+                                    className={cn(
+                                        "relative flex h-32 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-input bg-background p-4 text-center transition-all hover:border-primary",
+                                        uploadedFile && "border-primary bg-primary/5" // Indicate file selected visually
+                                        )}
+                                    onDragOver={handleDragOver}
+                                    onDragLeave={handleDragLeave}
+                                    onDrop={handleDrop}
+                                    onClick={() => document.getElementById('resumeFileInput')?.click()}
+                                >
+                                  <UploadCloud className="mb-2 h-8 w-8 text-muted-foreground" />
+                                  <span className="text-sm font-medium text-foreground">
                                       {uploadedFile ? uploadedFile.name : "Drop your file here, or upload one from your device."}
-                                    
-                                    SELECT A PDF OR WORD FILE
-                                    
-                                      
-                                      
-                                          
-                                      
-                                    
-                                  
-                             
+                                  </span>
+                                    <p className="text-xs text-muted-foreground mt-1">SELECT A PDF OR WORD FILE (MAX 5MB)</p>
+                                    <Input
+                                      type="file"
+                                      id="resumeFileInput"
+                                      className="absolute h-full w-full opacity-0 cursor-pointer"
+                                      onChange={onFileChange}
+                                      accept=".pdf,.doc,.docx" // Adjusted accept types
+                                      required={!uploadedFile} // Required if no file is currently uploaded
+                                    />
+                                  </div>
+                             </div>
+
 
                              {/* Simulation Notice */}
-                             
-                               
-                                
-Simulation Notice
-
-                                
+                             <Alert variant="destructive" className="bg-destructive/10 border-destructive/30">
+                               <AlertTriangle className="h-4 w-4 text-destructive" />
+                                <AlertTitle className="text-destructive font-semibold">Simulation Notice</AlertTitle>
+                                <AlertDescription className="text-destructive/90">
                                     This feature simulates the job application process. It **will not actually submit applications** on external websites.
-                                
-                             
-                         
+                                </AlertDescription>
+                             </Alert>
+                         </CardContent>
                      )}
 
                      {/* --- Step 2: Email Template --- */}
                      {configureStep === 'emailTemplate' && (
-                         
-                             
-2. Select or create a unique email template
-
-                             
+                         <CardContent className="space-y-8 border-t pt-6">
+                             <h3 className="font-semibold text-lg mb-4">2. Select or create a unique email template</h3>
+                             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                  {/* Left: Template List */}
-                                 
-                                     
-                                         
-                                             Popular templates
-                                         
-                                         
-                                            
+                                 <div className="lg:col-span-1 space-y-4">
+                                     <Card className="overflow-hidden">
+                                         <CardHeader className="bg-muted p-3 border-b">
+                                             <CardTitle className="text-sm font-medium">Popular templates</CardTitle>
+                                         </CardHeader>
+                                         <ScrollArea className="h-[200px]">
+                                             <CardContent className="p-2 space-y-1">
                                                 {allTemplates.filter(t => !t.isUserTemplate).map(template => (
-                                                    
-                                                        {template.displayName}
-                                                        {selectedEmailTemplateId === template.id && }
-                                                    
+                                                    <Button
+                                                        key={template.id}
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className={cn(
+                                                            "w-full justify-start h-auto py-1.5 px-2 text-xs", // Smaller text
+                                                            selectedEmailTemplateId === template.id && "bg-secondary font-semibold"
+                                                        )}
+                                                        onClick={() => handleSelectTemplate(template.id)}
+                                                    >
+                                                        {/* Allow wrapping for longer names */}
+                                                        <span className="whitespace-normal text-left leading-snug">{template.displayName}</span>
+                                                        {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary" />}
+                                                    </Button>
                                                 ))}
-                                             
-                                         
-                                     
-                                     
-                                         
-                                             My templates
-                                         
-                                         
-                                             
+                                             </CardContent>
+                                         </ScrollArea>
+                                     </Card>
+                                     <Card className="overflow-hidden">
+                                         <CardHeader className="bg-muted p-3 border-b">
+                                             <CardTitle className="text-sm font-medium">My templates</CardTitle>
+                                         </CardHeader>
+                                         <ScrollArea className="h-[150px]">
+                                             <CardContent className="p-2 space-y-1">
                                                  {allTemplates.filter(t => t.isUserTemplate).map(template => (
-                                                     
-                                                         {template.displayName}
-                                                         {selectedEmailTemplateId === template.id && }
-                                                     
+                                                     <Button
+                                                        key={template.id}
+                                                        variant="ghost"
+                                                        size="sm"
+                                                         className={cn(
+                                                            "w-full justify-start h-auto py-1.5 px-2 text-xs", // Smaller text
+                                                            selectedEmailTemplateId === template.id && "bg-secondary font-semibold"
+                                                        )}
+                                                        onClick={() => handleSelectTemplate(template.id)}
+                                                     >
+                                                          <span className="whitespace-normal text-left leading-snug">{template.displayName}</span>
+                                                          {selectedEmailTemplateId === template.id && <Check className="ml-auto h-4 w-4 text-primary" />}
+                                                     </Button>
                                                  ))}
                                                 {allTemplates.filter(t => t.isUserTemplate).length === 0 && (
-                                                     
-No custom templates created yet.
+                                                     <p className="p-2 text-xs text-muted-foreground text-center">No custom templates created yet.</p>
                                                 )}
-                                            
-                                         
-                                          
-                                            CREATE YOUR TEMPLATE
-                                         
-                                     
-                                 
+                                            </CardContent>
+                                         </ScrollArea>
+                                          <CardFooter className="p-2 border-t">
+                                             <Button variant="outline" size="sm" className="w-full" onClick={handleCreateTemplate}>
+                                                 <Pencil className="mr-2 h-4 w-4" /> CREATE YOUR TEMPLATE
+                                             </Button>
+                                         </CardFooter>
+                                     </Card>
+                                 </div>
+
 
                                  {/* Right: Template Editor */}
-                                 
-                                     
-                                         
-                                             Email template name 
-(this is just an identifier)
-                                         
-                                         
-                                             e.g., My Standard Application
-                                             
-                                         
-                                     
-                                      
-                                         
-                                             Email subject
-                                         
-                                         
-                                             e.g., Application for {{JOB_TITLE}}
-                                         
-                                     
-                                      
-                                         
-                                             Email body
-                                         
-                                         
-                                             Write your email content here. Use placeholders like {{JOB_TITLE}}, {{COMPANY_NAME}}, etc.
-                                             
-                                         
-                                         Hint: type {'{{'} to show the suggestions list (feature not implemented). NOTE: We will attach your CV to this email.
-                                     
+                                 <div className="lg:col-span-2 space-y-4">
+                                     <div className="space-y-1">
+                                         <Label htmlFor="emailTemplateName">
+                                             Email template name <span className="text-xs text-muted-foreground">(this is just an identifier)</span>
+                                         </Label>
+                                         <Input
+                                             id="emailTemplateName"
+                                             value={emailTemplateName}
+                                             onChange={onEmailTemplateNameChange}
+                                             placeholder="e.g., My Standard Application"
+                                             disabled={selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate} // Disable editing for popular templates
+                                         />
+                                     </div>
+                                      <div className="space-y-1">
+                                         <Label htmlFor="emailSubject">Email subject</Label>
+                                         <Input
+                                             id="emailSubject"
+                                             value={emailSubject}
+                                             onChange={onEmailSubjectChange}
+                                             placeholder="e.g., Application for {{JOB_TITLE}}"
+                                             disabled={selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate} // Disable editing for popular templates
+                                         />
+                                     </div>
+                                      <div className="space-y-1">
+                                         <Label htmlFor="emailBody">Email body</Label>
+                                         <Textarea
+                                             id="emailBody"
+                                             value={emailBody}
+                                             onChange={onEmailBodyChange}
+                                             placeholder="Write your email content here. Use placeholders like {{JOB_TITLE}}, {{COMPANY_NAME}}, etc."
+                                             rows={10}
+                                             disabled={selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate} // Disable editing for popular templates
+                                         />
+                                         <p className="text-xs text-muted-foreground">Hint: type {'{{'} to show the suggestions list (feature not implemented). NOTE: We will attach your CV to this email.</p>
+                                     </div>
                                      {/* Updated Save Button Style */}
                                      {/* Only enable save if it's a new template or a user template */}
-                                      
-                                         {isSaving ? "Saving..." : "SAVE"}
-                                         {hasUnsavedChanges && !isSaving && 
-(unsaved)
-}
-                                     
-                                     {selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate && (
-                                          
-Popular templates cannot be edited. Create a new template to customize.
-                                      )}
+                                     <div className="flex items-center justify-between">
+                                         <Button
+                                              variant="default" // Black button
+                                              onClick={handleSaveChanges}
+                                              disabled={isSaving || (selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate)} // Disable if saving or popular template selected
+                                              className="bg-primary text-primary-foreground hover:bg-primary/90" // Explicit black/white styling
+                                          >
+                                              <Check className="mr-2 h-4 w-4"/>
+                                              {isSaving ? "Saving..." : "SAVE"}
+                                              {hasUnsavedChanges && !isSaving && <span className="ml-2 text-xs opacity-70">(unsaved)</span>}
+                                         </Button>
+                                         {selectedEmailTemplateId && !allTemplates.find(t => t.id === selectedEmailTemplateId)?.isUserTemplate && (
+                                              <p className="text-xs text-destructive">Popular templates cannot be edited. Create a new template to customize.</p>
+                                          )}
+                                      </div>
 
 
                                      {/* Send Test Email Section */}
-                                     
-                                         
-                                             Send a test email
-                                         
-                                         
-                                             This is the email a company will receive once your criteria match the job posting.
-                                         
-                                          
-                                             
-                                                 
-                                                 
-                                             
-                                              
-                                                SEND TEST EMAIL
-                                            
-                                          
-                                     
-                                 
-                            
-                         
+                                     <Card className="bg-secondary/50">
+                                         <CardHeader className="pb-2">
+                                             <CardTitle className="text-base font-medium flex items-center gap-1"><Mail className="h-4 w-4"/> Send a test email</CardTitle>
+                                             <CardDescription className="text-xs">This is the email a company will receive once your criteria match the job posting.</CardDescription>
+                                         </CardHeader>
+                                         <CardContent className="flex items-center gap-2 pt-0 pb-3">
+                                             <Input
+                                                 type="email"
+                                                 placeholder="recipient@example.com"
+                                                 value={testEmailRecipient}
+                                                 onChange={onTestEmailRecipientChange}
+                                                 className="h-8 text-xs"
+                                             />
+                                              <Button variant="outline" size="sm" onClick={handleSendTestEmail}>
+                                                 <ChevronRight className="h-4 w-4 mr-1"/> SEND TEST EMAIL
+                                            </Button>
+                                         </CardContent>
+                                     </Card>
+                                 </div>
+                            </div>
+                         </CardContent>
                      )}
 
 
                      {/* --- Step 3: Settings --- */}
                      {configureStep === 'settings' && (
-                         
-                             
-3. Fine-tune your automation settings
+                          <CardContent className="space-y-8 border-t pt-6">
+                              <h3 className="font-semibold text-lg mb-4">3. Fine-tune your automation settings</h3>
 
-                             {/* Master Toggle */}
-                              
-                                
-                                 
-{masterAutoApply ? "Auto-Apply Active" : "Auto-Apply Disabled"}
-                                
-                                 
-{masterAutoApply
-                                        ? "The Master Auto-apply toggle is enabled. Emails and form fills will proceed based on individual loop settings."
-                                        : "The Master Auto-apply toggle is disabled. Please enable it if you want to automatically send emails and fill-in job application forms."}
-                                      
-                                
-                             
-
-                             {/* Individual Toggles */}
-                             
-                                
-                                     
-Automatically send emails
-
-                                        
-Enable this to let our platform instantly send emails to matching companies, streamlining your job hunt. Prefer reviewing emails first? Simply turn this off to personalise messages, ensuring alignment with your preferences before dispatch.
-                                    
-                                    
-                                
-                                
-                                     
-Auto-fill Application Forms
-
-                                      
-Enable this to allow our platform to automatically submit job application forms on your behalf.
-                                            Check an example application form that we usually fill for you.
-                                       
-                                    
-                                
-                                 
-                                      
-                                         AI answering
-                                         
-                                      
-                                      
-Enable this to let AI handle any question that occur during the application processes.
-                                  
-                                    
-                                
-                             
-
-                            {/* Additional Form Fields */}
-                             
-                                 
-Additional Fields for Form Applications
-
-                                 
-The below fields are asked by most companies in order to let you apply online. We need to save your answers in order to be able to apply online for you.
-                                
-
-                                 {/* Phone Number */}
-                                
-                                      
-Phone 
-
-                                         
-                                            🇮🇳 +91
-                                            🇺🇸 +1
-                                            🇬🇧 +44
-                                            🇫🇷 +33
-                                            🇩🇪 +49
-                                            {/* Add more country codes */}
-                                        
-                                      
-                                      
-Phone Number
-                                         
-                                     
-                                
-
-                                 {/* City */}
-                                
-                                     
-City 
-
-                                      
-                                          Location that you are based in
-                                         
-                                     
-                                
-
-                                 {/* Cover Letter */}
-                                
-                                     
-Cover letter
-
-                                     
-                                         
-                                             
-                                             
-                                         
-                                         
-                                             Edit Cover Letter
-                                         
-                                     
-                                 
-                            
-
-                            {/* Salary Range */}
-                             
-                               Desired salary range
-
-                                     
-                                       
-                                           
-                                              Set your desired salary range to filter job matches. 
- Only jobs with reported salaries that match your criteria will be included.
-                                          
-                                       
-                                    
-                               
-                                
-                                         
-                                            INR (₹)
-                                            USD ($)
-                                            EUR (€)
-                                            GBP (£)
-                                            {/* Add more currencies */}
-                                        
-                                        
-                                        
-                                        
-                                        
-                                    
-                                  Learn More
-                             
-
-                             {/* Exclude Companies */}
-                             
-                                
-                                     
-Do you want to exclude some companies?
-
-                                         
-                                           
-Select companies that will not be part of your search.
-                                         
-                                       
-                                    
-                                    
-                                          
-                                          
-                                           Add
-                                     
-                                
-                                
-                                     
-Companies you have chosen
-
-                                     
-                                          
-                                               {excludedCompanies.map(company => (
-                                                   
-                                                       {company}
-                                                       
-Remove {company}
-                                                  
-                                              ))}
-                                          
-                                        
-                                        You don't have any excluded companies selected for this Loop.
-                                    
-                                
-                             
-
-                              {/* Include Keywords */}
-                             
-                                
-                                    
-Select the keywords that should be present in the job posting
-
-                                         
-                                        
-Keywords that must be included in job description.
-                                         
-                                     
-                                    
-                                         
-                                          
-                                          
-                                            Add
-                                     
-                                
-                                 
-                                    
-Keywords you have chosen
-
-                                    
-                                         
-                                              {includedKeywords.map(keyword => (
-                                                  
-                                                      {keyword}
-                                                      
-Remove {keyword}
-                                                  
-                                              ))}
-                                         
-                                    
-                                        You don't have any keywords selected.
-                                    
-                                
-                             
-
-                             {/* Exclude Keywords */}
-                            
-                                
-                                     
-Exclude keywords
-
-                                         
-                                          
-Keywords that must NOT be included in job description.
-                                         
-                                     
-                                    
-                                        
-                                           
-                                           Add
-                                     
-                                
-                                
-                                    
-Keywords you have chosen
-
-                                     
-                                          
-                                              {excludedKeywords.map(keyword => (
-                                                  
-                                                      {keyword}
-                                                      
-Remove {keyword}
-                                                  
-                                              ))}
-                                         
-                                    
-                                        You don't have any keywords selected.
-                                    
-                                
-                            
-
-                            {/* Job Match Level */}
-                            
-                                
-Please choose the level of the job match you prefer
-                                {/* New paragraph for match level display */}
-                                 
-Our Auto-Apply will {getJobMatchText(jobMatchLevel)} match with your preferences.
-                                
-                                
-                                    
-                                
-                                
-                                    
-                                    
-                                 
-                             
-
-                             {/* Final Note - Updated to show dynamic description */}
-                              
-                               
-                                
-Important Note
-
-                                
-                                    {getJobMatchLevelDescription(jobMatchLevel)} {/* Dynamic description here */}
-                               
-                             
-
-                         
-                     )}
+                              {/* Master Toggle */}
+                               <Card className="bg-secondary/50">
+                                 <CardContent className="p-4 flex items-start justify-between gap-4">
+                                     <div>
+                                         <Label htmlFor="masterAutoApply" className="font-semibold text-base flex items-center gap-1">
+                                             <Bot className="h-5 w-5 text-primary"/> {masterAutoApply ? "Auto-Apply Active" : "Auto-Apply Disabled"}
+                                         </Label>
+                                         <p className="text-xs text-muted-foreground mt-1 pr-4">
+                                             {masterAutoApply
+                                                 ? "The Master Auto-apply toggle is enabled. Emails and form fills will proceed based on individual loop settings."
+                                                 : "The Master Auto-apply toggle is disabled. Please enable it if you want to automatically send emails and fill-in job application forms."}
+                                         </p>
+                                     </div>
+                                     <Switch id="masterAutoApply" checked={masterAutoApply} onCheckedChange={onMasterAutoApplyChange} />
+                                 </CardContent>
+                              </Card>
 
 
-                     {/* --- Step 4: Review (Placeholder) --- */}
+                              {/* Individual Toggles */}
+                              <div className={cn("space-y-4", !masterAutoApply && "opacity-60 pointer-events-none")}> {/* Disable group if master is off */}
+                                 <div className="flex items-start justify-between gap-4 rounded-md border p-4">
+                                     <div>
+                                         <Label htmlFor="autoSendEmails" className="font-medium">Automatically send emails</Label>
+                                         <p className="text-xs text-muted-foreground mt-1">
+                                             Enable this to let our platform instantly send emails to matching companies, streamlining your job hunt. Prefer reviewing emails first? Simply turn this off to personalise messages, ensuring alignment with your preferences before dispatch.
+                                         </p>
+                                     </div>
+                                     <Switch id="autoSendEmails" checked={autoSendEmails} onCheckedChange={onAutoSendEmailsChange} disabled={!masterAutoApply}/>
+                                 </div>
+                                 <div className="flex items-start justify-between gap-4 rounded-md border p-4">
+                                     <div>
+                                         <Label htmlFor="autoFillForms" className="font-medium">Auto-fill Application Forms</Label>
+                                         <p className="text-xs text-muted-foreground mt-1">
+                                             Enable this to allow our platform to automatically submit job application forms on your behalf.
+                                              <Button variant="link" size="sm" className="h-auto p-0 ml-1 text-xs">(Check an example form - Not Impl.)</Button>
+                                         </p>
+                                     </div>
+                                     <Switch id="autoFillForms" checked={autoFillForms} onCheckedChange={onAutoFillFormsChange} disabled={!masterAutoApply}/>
+                                 </div>
+                                  <div className="flex items-start justify-between gap-4 rounded-md border p-4">
+                                      <div className="flex items-center gap-2">
+                                         <Label htmlFor="aiAnswering" className="font-medium">AI answering <Badge variant="outline" className="text-xs">BETA</Badge></Label>
+                                          <TooltipProvider>
+                                              <Tooltip>
+                                                  <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                                                  <TooltipContent><p>Allow AI to answer questions during the application process.</p></TooltipContent>
+                                              </Tooltip>
+                                          </TooltipProvider>
+                                      </div>
+                                      <Switch id="aiAnswering" checked={aiAnswering} onCheckedChange={onAiAnsweringChange} disabled={!masterAutoApply}/>
+                                  </div>
+                              </div>
+
+
+                             {/* Additional Form Fields */}
+                              <Card>
+                                 <CardHeader>
+                                     <CardTitle className="text-base font-semibold">Additional Fields for Form Applications</CardTitle>
+                                     <CardDescription className="text-xs">The below fields are asked by most companies in order to let you apply online. We need to save your answers in order to be able to apply online for you.</CardDescription>
+                                 </CardHeader>
+                                 <CardContent className="space-y-4">
+                                     {/* Phone Number */}
+                                    <div className="flex items-end gap-2">
+                                        <div className="w-24 flex-shrink-0">
+                                            <Label htmlFor="phoneCountryCode">Phone <span className="text-destructive">*</span></Label>
+                                             <Select value={phoneCountryCode} onValueChange={onPhoneCountryCodeChange} required>
+                                                 <SelectTrigger id="phoneCountryCode" className="mt-1 h-9 text-xs">
+                                                     <SelectValue placeholder="Code"/>
+                                                 </SelectTrigger>
+                                                 <SelectContent>
+                                                     <SelectItem value="+91">🇮🇳 +91</SelectItem>
+                                                     <SelectItem value="+1">🇺🇸 +1</SelectItem>
+                                                     <SelectItem value="+44">🇬🇧 +44</SelectItem>
+                                                     <SelectItem value="+33">🇫🇷 +33</SelectItem>
+                                                     <SelectItem value="+49">🇩🇪 +49</SelectItem>
+                                                     {/* Add more country codes */}
+                                                 </SelectContent>
+                                             </Select>
+                                        </div>
+                                        <Input
+                                            id="phoneNumber"
+                                            type="tel"
+                                            value={phoneNumber}
+                                            onChange={onPhoneNumberChange}
+                                            placeholder="Phone Number"
+                                            required
+                                            className="h-9 text-xs"
+                                        />
+                                    </div>
+
+
+                                     {/* City */}
+                                    <div className="space-y-1">
+                                         <Label htmlFor="cityLocation">City <span className="text-destructive">*</span></Label>
+                                         <Input
+                                             id="cityLocation"
+                                             value={cityLocation}
+                                             onChange={onCityLocationChange}
+                                             placeholder="Location that you are based in"
+                                             required
+                                             className="h-9 text-xs"
+                                         />
+                                     </div>
+
+
+                                     {/* Cover Letter */}
+                                    <div className="space-y-1">
+                                         <Label htmlFor="coverLetterContent">Cover letter</Label>
+                                         <div className="flex items-center gap-2">
+                                             <Textarea
+                                                 id="coverLetterContent"
+                                                 value={coverLetterContent}
+                                                 onChange={onCoverLetterContentChange}
+                                                 rows={4}
+                                                 className="text-xs"
+                                                 placeholder="Enter your generic cover letter template..."
+                                             />
+                                             <Button variant="outline" size="sm" className="self-start">
+                                                 <Pencil className="h-3 w-3"/>
+                                                 <span className="sr-only">Edit Cover Letter</span>
+                                             </Button>
+                                         </div>
+                                     </div>
+                                 </CardContent>
+                             </Card>
+
+
+                             {/* Salary Range */}
+                              <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-base font-semibold flex items-center justify-between">
+                                        <span>Desired salary range</span>
+                                        <Button variant="link" size="sm" className="h-auto p-0 text-xs">(Learn More - Not Impl.)</Button>
+                                    </CardTitle>
+                                    <CardDescription className="text-xs flex items-center gap-1">
+                                        <Info className="h-3 w-3 flex-shrink-0"/> Set your desired salary range to filter job matches. Only jobs with reported salaries that match your criteria will be included.
+                                    </CardDescription>
+                                </CardHeader>
+                                <CardContent className="grid grid-cols-3 gap-2 items-end">
+                                     <div className="space-y-1">
+                                          <Label htmlFor="desiredSalaryCurrency" className="text-xs">Currency</Label>
+                                          <Select value={desiredSalaryCurrency} onValueChange={onDesiredSalaryCurrencyChange}>
+                                              <SelectTrigger id="desiredSalaryCurrency" className="h-9 text-xs">
+                                                  <SelectValue placeholder="Select Currency" />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                  <SelectItem value="INR">INR (₹)</SelectItem>
+                                                  <SelectItem value="USD">USD ($)</SelectItem>
+                                                  <SelectItem value="EUR">EUR (€)</SelectItem>
+                                                  <SelectItem value="GBP">GBP (£)</SelectItem>
+                                                  {/* Add more currencies */}
+                                              </SelectContent>
+                                          </Select>
+                                      </div>
+                                      <div className="space-y-1">
+                                          <Label htmlFor="minSalary" className="text-xs">Min Salary</Label>
+                                          <Input id="minSalary" type="number" placeholder="e.g., 50000" value={minSalary} onChange={onMinSalaryChange} className="h-9 text-xs"/>
+                                      </div>
+                                       <div className="space-y-1">
+                                          <Label htmlFor="maxSalary" className="text-xs">Max Salary</Label>
+                                          <Input id="maxSalary" type="number" placeholder="e.g., 80000" value={maxSalary} onChange={onMaxSalaryChange} className="h-9 text-xs"/>
+                                      </div>
+                                 </CardContent>
+                             </Card>
+
+
+                              {/* Filtering Section */}
+                              <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-base font-semibold">Filtering Options</CardTitle>
+                                </CardHeader>
+                                <CardContent className="space-y-6">
+                                     {/* Exclude Companies */}
+                                     <div className="space-y-2">
+                                         <Label htmlFor="excludeCompaniesInput">
+                                             Do you want to exclude some companies?
+                                              <TooltipProvider>
+                                                  <Tooltip>
+                                                      <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help inline-block ml-1 mb-0.5" /></TooltipTrigger>
+                                                      <TooltipContent><p>Select companies that will not be part of your search.</p></TooltipContent>
+                                                  </Tooltip>
+                                              </TooltipProvider>
+                                         </Label>
+                                         <div className="flex gap-2">
+                                              <Input
+                                                id="excludeCompaniesInput"
+                                                value={excludeCompaniesInput}
+                                                onChange={(e) => setExcludeCompaniesInput(e.target.value)}
+                                                placeholder="Enter company name"
+                                                className="h-8 text-xs"
+                                                onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword('company')}
+                                               />
+                                               <Button variant="outline" size="sm" onClick={() => handleAddKeyword('company')} className="h-8">Add</Button>
+                                         </div>
+                                         {excludedCompanies.length > 0 && (
+                                             <div className="mt-2 space-y-1">
+                                                 <p className="text-xs font-medium text-muted-foreground">Companies you have chosen</p>
+                                                 <div className="flex flex-wrap gap-1">
+                                                       {excludedCompanies.map(company => (
+                                                           <ItemChip key={company} label={company} onRemove={() => handleRemoveItem('company', company)} />
+                                                      ))}
+                                                  </div>
+                                             </div>
+                                         )}
+                                         {excludedCompanies.length === 0 && <p className="text-xs text-muted-foreground mt-1">You don't have any excluded companies selected for this Loop.</p>}
+                                     </div>
+
+
+                                      {/* Include Keywords */}
+                                     <div className="space-y-2">
+                                         <Label htmlFor="includeKeywordsInput">
+                                             Select the keywords that should be present in the job posting
+                                              <TooltipProvider>
+                                                  <Tooltip>
+                                                      <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help inline-block ml-1 mb-0.5" /></TooltipTrigger>
+                                                      <TooltipContent><p>Keywords that must be included in job description.</p></TooltipContent>
+                                                  </Tooltip>
+                                              </TooltipProvider>
+                                         </Label>
+                                         <div className="flex gap-2">
+                                              <Input
+                                                id="includeKeywordsInput"
+                                                value={includeKeywordsInput}
+                                                onChange={(e) => setIncludeKeywordsInput(e.target.value)}
+                                                placeholder="Enter keyword"
+                                                className="h-8 text-xs"
+                                                onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword('include')}
+                                              />
+                                               <Button variant="outline" size="sm" onClick={() => handleAddKeyword('include')} className="h-8">Add</Button>
+                                         </div>
+                                          {includedKeywords.length > 0 && (
+                                              <div className="mt-2 space-y-1">
+                                                  <p className="text-xs font-medium text-muted-foreground">Keywords you have chosen</p>
+                                                  <div className="flex flex-wrap gap-1">
+                                                       {includedKeywords.map(keyword => (
+                                                           <ItemChip key={keyword} label={keyword} onRemove={() => handleRemoveItem('include', keyword)} />
+                                                       ))}
+                                                   </div>
+                                              </div>
+                                          )}
+                                        {includedKeywords.length === 0 && <p className="text-xs text-muted-foreground mt-1">You don't have any keywords selected.</p>}
+                                     </div>
+
+
+                                     {/* Exclude Keywords */}
+                                    <div className="space-y-2">
+                                         <Label htmlFor="excludeKeywordsInput">
+                                             Exclude keywords
+                                              <TooltipProvider>
+                                                  <Tooltip>
+                                                      <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help inline-block ml-1 mb-0.5" /></TooltipTrigger>
+                                                      <TooltipContent><p>Keywords that must NOT be included in job description.</p></TooltipContent>
+                                                  </Tooltip>
+                                              </TooltipProvider>
+                                         </Label>
+                                         <div className="flex gap-2">
+                                               <Input
+                                                 id="excludeKeywordsInput"
+                                                 value={excludeKeywordsInput}
+                                                 onChange={(e) => setExcludeKeywordsInput(e.target.value)}
+                                                 placeholder="Enter keyword to exclude"
+                                                 className="h-8 text-xs"
+                                                 onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword('exclude')}
+                                                />
+                                                <Button variant="outline" size="sm" onClick={() => handleAddKeyword('exclude')} className="h-8">Add</Button>
+                                         </div>
+                                          {excludedKeywords.length > 0 && (
+                                              <div className="mt-2 space-y-1">
+                                                  <p className="text-xs font-medium text-muted-foreground">Keywords you have chosen</p>
+                                                  <div className="flex flex-wrap gap-1">
+                                                       {excludedKeywords.map(keyword => (
+                                                           <ItemChip key={keyword} label={keyword} onRemove={() => handleRemoveItem('exclude', keyword)} />
+                                                       ))}
+                                                   </div>
+                                              </div>
+                                          )}
+                                        {excludedKeywords.length === 0 && <p className="text-xs text-muted-foreground mt-1">You don't have any keywords selected.</p>}
+                                     </div>
+                                </CardContent>
+                             </Card>
+
+
+                             {/* Job Match Level */}
+                             <Card>
+                                <CardHeader className="pb-3">
+                                    <CardTitle className="text-base font-semibold">Please choose the level of the job match you prefer</CardTitle>
+                                    {/* New paragraph for match level display */}
+                                     <p className="text-sm text-primary font-medium">
+                                        Our Auto-Apply will <span className="font-bold">{getJobMatchText(jobMatchLevel)}</span> match with your preferences.
+                                    </p>
+                                </CardHeader>
+                                <CardContent className="pt-0 pb-4 space-y-3">
+                                    <Slider
+                                        value={[jobMatchLevel]}
+                                        onValueChange={onJobMatchLevelChange}
+                                        max={2}
+                                        step={1}
+                                        className="w-[80%] mx-auto"
+                                    />
+                                     <div className="flex justify-between text-xs text-muted-foreground w-[80%] mx-auto">
+                                        <span>Low</span>
+                                        <span>Middle</span>
+                                        <span>High</span>
+                                     </div>
+
+                                     {/* Final Note - Updated to show dynamic description */}
+                                      <Alert variant="default" className="mt-4 bg-secondary/50">
+                                       <Info className="h-4 w-4 text-muted-foreground" />
+                                        <AlertTitle className="font-semibold">Important Note</AlertTitle>
+                                        <AlertDescription className="text-xs">
+                                            {getJobMatchLevelDescription(jobMatchLevel)} {/* Dynamic description here */}
+                                        </AlertDescription>
+                                      </Alert>
+                                </CardContent>
+                             </Card>
+
+                          </CardContent>
+                      )}
+
+
+                     {/* --- Step 4: Review (Placeholder for now) --- */}
                      {configureStep === 'review' && (
-                         
-                              4. Review Your Configuration (Not Implemented)
-                         
+                         <CardContent className="space-y-8 border-t pt-6 text-center">
+                              <h3 className="font-semibold text-lg mb-4">4. Review Your Configuration</h3>
+                               <p className="text-muted-foreground">Review step is not fully implemented yet. <br /> Click "Save and Run" to proceed with simulation using current settings.</p>
+                               {/* Display summary of settings here in the future */}
+                         </CardContent>
                      )}
 
-                    
+
+                    <CardFooter className="flex justify-between border-t pt-6">
                          {/* Back Button */}
                          {configureStep === 'searchInfo' ? (
-                            
-                                 
-Back to Stats
-                            
+                            <Link href="/auto-apply" passHref>
+                                 <Button variant="outline" onClick={() => setViewState('statistics')}>
+                                     <ArrowLeft className="mr-2 h-4 w-4"/> Back to Stats
+                                 </Button>
+                            </Link>
                          ) : (
-                            
-                                 
-PREVIOUS {/* Changed label */}
-                            
+                            <Button variant="outline" onClick={handlePreviousStep}>
+                                 <ChevronLeft className="mr-2 h-4 w-4"/> PREVIOUS {/* Changed label */}
+                            </Button>
                          )}
 
                          {/* Action Buttons */}
-                         
-                             {/* Show "Save and Run" only on the final (review) step */}
-                              {configureStep === 'review' && (
-                                
-                                    SAVE AND RUN {/* Changed label */}
-                                
+                         <div className="flex gap-2">
+                             {/* Show "Save and Run" only on the final (review) step or settings step */}
+                              {(configureStep === 'review' || configureStep === 'settings') && (
+                                <Button
+                                    variant="default"
+                                    onClick={handleSaveAndRun}
+                                    className="bg-primary text-primary-foreground hover:bg-primary/90" // Explicit black/white
+                                >
+                                    <Play className="mr-2 h-4 w-4"/> SAVE AND RUN {/* Changed label */}
+                                </Button>
                              )}
-                              {/* Show "Save and Run" on settings step as well, but only if review is not implemented */}
-                              {configureStep === 'settings' && (
-                                 
-                                     SAVE AND RUN
-                                 
-                              )}
 
 
                              {/* Show "Next" on all steps except the last one */}
                               {configureStep !== 'review' ? (
-                                
-                                    NEXT
-                                    
-                                 
+                                <Button onClick={handleNextStep}>
+                                    NEXT <ChevronRight className="ml-2 h-4 w-4"/>
+                                 </Button>
                               ) : (
                                   null // Hide "Next" on the last step
                               )}
-                         
-                    
-                
-                
+                         </div>
+                    </CardFooter>
+                </Card>
             );
         case 'applying':
             return (
-                
-                    
-Simulating Job Search & Applications...
-
-                    
-This is a simulation based on your loop configuration.
-                
+                <div className="flex min-h-[60vh] flex-col items-center justify-center space-y-4 text-center">
+                    <LoadingSpinner />
+                    <p className="text-lg font-semibold text-primary">
+                        Simulating Job Search & Applications...
+                    </p>
+                    <p className="text-muted-foreground">
+                        This is a simulation based on your loop configuration. Please wait.
+                    </p>
+                </div>
             );
         case 'results':
              return (
-                
-                    
-                         
-Simulated Application Results
-
-                        
-Overview of the jobs the simulation attempted to apply for based on your loop configuration.
-                    
-                    
-                         {appliedJobs.length > 0 ? (
-                            appliedJobs.map((job) => (
-                                
-                                      
-                                         
-{job.title} - {job.company}
-
-                                        
-{job.location} - Simulated: {job.appliedDate}
-                                     
-                                     
-{job.status === 'Applied' ?  : }
-                                        {job.status}
-                                     
-                                
-                            ))
+                 <Card className="shadow-lg max-w-4xl mx-auto">
+                     <CardHeader>
+                          <CardTitle className="text-xl font-semibold text-center">
+                              <CircleCheck className="h-8 w-8 text-primary mx-auto mb-2" /> Simulated Application Results
+                          </CardTitle>
+                         <CardDescription className="text-center">
+                             Overview of the jobs the simulation attempted to apply for based on your loop configuration.
+                         </CardDescription>
+                     </CardHeader>
+                     <CardContent className="max-h-[60vh] overflow-y-auto p-4 border-t border-b">
+                          {appliedJobs.length > 0 ? (
+                            <div className="space-y-3">
+                                {appliedJobs.map((job) => (
+                                    <div key={job.id} className="flex items-center justify-between rounded-md border p-3 bg-background">
+                                          <div>
+                                             <p className="font-medium">{job.title} - <span className="text-muted-foreground">{job.company}</span></p>
+                                             <p className="text-xs text-muted-foreground">{job.location} - Simulated: {job.appliedDate}</p>
+                                          </div>
+                                          <Badge variant={job.status === 'Applied' ? 'default' : 'destructive'} className="text-xs">
+                                              {job.status === 'Applied' ? <Check className="h-3 w-3 mr-1"/> : <AlertTriangle className="h-3 w-3 mr-1" />}
+                                             {job.status}
+                                          </Badge>
+                                     </div>
+                                ))}
+                            </div>
                         ) : (
-                            
-No simulated applications were processed in this run.
+                            <p className="text-center text-muted-foreground py-8">No simulated applications were processed in this run.</p>
                         )}
-                     
-                     
-                        
-                            
-                                 Configure New Loop
-                            
-                            
-                                
-Back to Stats {/* Changed icon */}
-                            
-                        
-                     
-                
+                     </CardContent>
+                      <CardFooter className="flex justify-between pt-4">
+                         <Button variant="outline" onClick={navigateToConfigure}>
+                              <Settings className="mr-2 h-4 w-4"/> Configure New Loop
+                         </Button>
+                         <Button variant="secondary" onClick={() => setViewState('statistics')}>
+                             <BarChart className="mr-2 h-4 w-4"/> Back to Stats {/* Changed icon */}
+                         </Button>
+                     </CardFooter>
+                 </Card>
              );
         case 'error':
              return (
-                 
-                    
-                         
-Simulation Error
-                    
-
-                    
-{errorMessage || "An unexpected error occurred during the simulation."}
-                    
-                     
-                        
-Try Again
-
-                        
-                           
-Back to Stats
-                        
-                     
-                
+                 <Card className="shadow-lg max-w-md mx-auto text-center">
+                     <CardHeader>
+                          <CardTitle className="text-xl font-semibold text-destructive">
+                              <CircleX className="h-8 w-8 text-destructive mx-auto mb-2" /> Simulation Error
+                          </CardTitle>
+                     </CardHeader>
+                     <CardContent>
+                         <p className="text-muted-foreground">
+                             {errorMessage || "An unexpected error occurred during the simulation."}
+                         </p>
+                     </CardContent>
+                      <CardFooter className="flex justify-center gap-4 pt-4">
+                         <Button variant="outline" onClick={navigateToConfigure}>
+                             <RefreshCcw className="mr-2 h-4 w-4"/> Try Again
+                         </Button>
+                         <Button variant="secondary" onClick={() => setViewState('statistics')}>
+                            <BarChart className="mr-2 h-4 w-4"/> Back to Stats
+                         </Button>
+                      </CardFooter>
+                 </Card>
              );
      }
   };
 
 
   return (
-    
-      
-        
-          
-            
-             Back to Dashboard
-          
-        
+    <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
+      <header className="mb-8 flex items-center justify-between border-b pb-4">
+        <Link href="/" passHref>
+          <Button variant="outline" size="sm">
+             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Dashboard
+          </Button>
+        </Link>
         {/* Adjust title based on view state */}
-        
+        <h1 className="text-xl md:text-2xl font-semibold text-primary text-center flex-grow">
             {viewState === 'statistics' ? 'Auto Apply Dashboard' : 'Automated Job Application (Simulation)'}
-        
+        </h1>
          {/* Keep consistent spacing */}
-        
+        <div className="w-[160px] text-right"> {/* Adjusted width */}
             {viewState === 'configure' && (
-                
-Cancel
+                <Button variant="ghost" size="sm" onClick={() => setViewState('statistics')}>
+                    Cancel
+                </Button>
             )}
-        
-      
+        </div>
+      </header>
 
       {/* Use TooltipProvider at a higher level if not already present */}
-      
-         
+      <TooltipProvider>
+         <main>
             {renderContent()}
-         
-      
+         </main>
+      </TooltipProvider>
 
-        
+
+        <footer className="mt-12 border-t pt-6 text-center text-sm text-muted-foreground">
          © {new Date().getFullYear()} CareerCraft AI. All rights reserved.
-      
-    
+      </footer>
+    </div>
   );
 }
-
-    
