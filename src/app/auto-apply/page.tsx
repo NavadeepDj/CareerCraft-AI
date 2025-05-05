@@ -1,7 +1,7 @@
 // src/app/auto-apply/page.tsx
 'use client';
 
-import React, { useState, useCallback, ChangeEvent, useEffect } from 'react';
+import React, { useState, useCallback, ChangeEvent, useEffect } from 'react'; // Import useEffect
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -456,7 +456,7 @@ const Stepper: React.FC<{ currentStep: ConfigureStep }> = ({ currentStep }) => {
 
     return (
         <div className="mb-8 flex items-center justify-center space-x-4 md:space-x-8">
-            {steps.map((step, index) => (
+            {steps.map((step, index) => ( // Fixed: map parameters should be (item, index)
                 <div key={step.id} className="flex items-center"> {/* Ensure key is on the outer element */}
                     <div
                         className={cn(
@@ -503,9 +503,9 @@ const StatisticsDashboard: React.FC<{ onConfigure: () => void }> = ({ onConfigur
             <CardTitle className="text-2xl font-semibold">
                 Statistics
             </CardTitle>
-            <CardDescription>
+             <CardDescription>
                  Overview of your automated job application activity.
-            </CardDescription>
+             </CardDescription>
         </CardHeader>
         <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center"> {/* Adjusted grid columns */}
@@ -1590,7 +1590,6 @@ export default function AutoApplyPage() {
                                          <Label htmlFor="autoFillForms" className="font-medium">Auto-fill Application Forms</Label>
                                          <p className="text-xs text-muted-foreground mt-1">
                                              Enable this to allow our platform to automatically submit job application forms on your behalf.
-                                              {/* Removed example form link */}
                                          </p>
                                      </div>
                                      <Switch id="autoFillForms" checked={autoFillForms} onCheckedChange={onAutoFillFormsChange} disabled={!masterAutoApply}/>
