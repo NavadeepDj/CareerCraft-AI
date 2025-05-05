@@ -29,29 +29,35 @@ interface Template {
     name: string;
     path: string; // Path relative to the public directory
     thumbnail: string; // URL to the thumbnail image
+    aiHint: string; // Hint for image generation/replacement
 }
 
+// Updated templates array with correct paths and more specific AI hints
 const templates: Template[] = [
   {
     id: 'stylish_sales',
     name: 'Stylish Sales',
     path: '/templates/Stylish_sales_resume.docx',
-    thumbnail: 'https://picsum.photos/seed/resume1/300/400'
+    thumbnail: 'https://picsum.photos/seed/stylish_sales/300/400',
+    aiHint: 'stylish modern resume sales professional',
   },
   {
     id: 'modern_professional',
     name: 'Modern Professional',
     path: '/templates/Modern_professional_resume.docx',
-    thumbnail: 'https://picsum.photos/seed/resume2/300/400'
+    thumbnail: 'https://picsum.photos/seed/modern_prof/300/400',
+    aiHint: 'modern professional resume clean design',
   },
   {
     id: 'classic_monochrome',
     name: 'Classic Monochrome',
-    path: '/templates/Classic_monochrome_resume.docx', // Assuming this exists
-    thumbnail: 'https://picsum.photos/seed/resume3/300/400'
+    path: '/templates/Classic_monochrome_resume.docx',
+    thumbnail: 'https://picsum.photos/seed/classic_mono/300/400',
+    aiHint: 'classic monochrome resume traditional layout',
   },
-  // Add more templates here if needed
+  // Add more templates here if needed, ensuring the .docx files exist in public/templates
 ];
+
 
 // Type definition for resume data state
 export type ResumeData = {
@@ -236,7 +242,7 @@ export default function ResumeBuilderPage() {
                                 width={300}
                                 height={400}
                                 className="w-full object-cover aspect-[3/4] bg-secondary" // Added bg-secondary as placeholder background
-                                data-ai-hint="resume template preview"
+                                data-ai-hint={template.aiHint} // Use specific hint
                                 priority // Load thumbnails faster
                                 unoptimized // Avoid Next.js image optimization for external URLs like picsum
                             />
@@ -303,7 +309,7 @@ export default function ResumeBuilderPage() {
                      <fieldset className="space-y-1 rounded border p-4 pt-2">
                        <legend className="-ml-1 px-1 text-sm font-medium text-primary">Skills</legend>
                         <Textarea id="skills" value={resumeData.skills} onChange={handleInputChange} rows={4} placeholder="Skill 1, Skill 2, Skill 3..." />
-                        <p className="text-xs text-muted-foreground">Separate skills with commas.</p>
+                        <p className="text-xs text-muted-foreground">Separate skills with commas or put each on a new line.</p>
                      </fieldset>
 
                      {/* Education Section */}
