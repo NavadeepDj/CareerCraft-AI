@@ -471,7 +471,7 @@ const Stepper: React.FC<{ currentStep: ConfigureStep }> = ({ currentStep }) => {
 
     return (
         <div className="mb-8 flex items-center justify-center space-x-4 md:space-x-8">
-            {steps.map((step, index) => ( // Fixed: map parameters should be (item, index)
+            {steps.map((step, index) => (
                 <div key={step.id} className="flex items-center">
                     <div
                         className={cn(
@@ -880,7 +880,14 @@ export default function AutoApplyPage() {
          toast({ title: "Missing Required Fields", description: "Please provide your Phone number and City in the Settings tab.", variant: "destructive" });
          return;
      }
-     // TODO: Add more validation for Step 3 if needed (e.g., salary format)
+     // Salary validation
+     const minSalaryNum = parseFloat(minSalary);
+     const maxSalaryNum = parseFloat(maxSalary);
+     if (!isNaN(minSalaryNum) && !isNaN(maxSalaryNum) && minSalaryNum > maxSalaryNum) {
+       setConfigureStep('settings');
+       toast({ title: "Invalid Salary Range", description: "Minimum salary cannot be greater than maximum salary.", variant: "destructive" });
+       return;
+     }
 
 
     setViewState('applying');
@@ -971,6 +978,13 @@ export default function AutoApplyPage() {
          if (!phoneNumber.trim() || !cityLocation.trim()) {
              toast({ title: "Missing Required Fields", description: "Please provide your Phone number and City.", variant: "destructive" });
              return;
+         }
+          // Validate Salary Range
+         const minSalaryNum = parseFloat(minSalary);
+         const maxSalaryNum = parseFloat(maxSalary);
+         if (!isNaN(minSalaryNum) && !isNaN(maxSalaryNum) && minSalaryNum > maxSalaryNum) {
+           toast({ title: "Invalid Salary Range", description: "Minimum salary cannot be greater than maximum salary.", variant: "destructive" });
+           return;
          }
          // Add more validation if needed (e.g., salary format)
         setConfigureStep('review');
@@ -1971,3 +1985,5 @@ export default function AutoApplyPage() {
     </div>
   );
 }
+
+    
