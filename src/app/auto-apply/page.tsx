@@ -1,7 +1,7 @@
 // src/app/auto-apply/page.tsx
 'use client';
 
-import React, { useState, useCallback, ChangeEvent } from 'react';
+import React, { useState, useCallback, ChangeEvent, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -524,10 +524,6 @@ const StatisticsDashboard: React.FC<{ onConfigure: () => void }> = ({ onConfigur
                 Configure New Simulation Loop
             </Button>
         </CardFooter>
-         {/* Footer added to Statistics view */}
-        <footer className="mt-12 border-t pt-6 text-center text-sm text-muted-foreground">
-         © {new Date().getFullYear()} CareerCraft AI. All rights reserved.
-        </footer>
     </Card>
   );
 };
@@ -1594,7 +1590,7 @@ export default function AutoApplyPage() {
                                          <Label htmlFor="autoFillForms" className="font-medium">Auto-fill Application Forms</Label>
                                          <p className="text-xs text-muted-foreground mt-1">
                                              Enable this to allow our platform to automatically submit job application forms on your behalf.
-                                              <Button variant="link" size="sm" className="h-auto p-0 ml-1 text-xs">(Check an example form - Not Impl.)</Button>
+                                              {/* Removed example form link */}
                                          </p>
                                      </div>
                                      <Switch id="autoFillForms" checked={autoFillForms} onCheckedChange={onAutoFillFormsChange} disabled={!masterAutoApply}/>
@@ -2069,7 +2065,7 @@ export default function AutoApplyPage() {
 
 
   return (
-    <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
+    <div className="container mx-auto min-h-screen flex flex-col p-4 md:p-6 lg:p-8">
       <header className="mb-8 flex items-center justify-between border-b pb-4">
         <Link href="/" passHref>
           <Button variant="outline" size="sm">
@@ -2092,18 +2088,15 @@ export default function AutoApplyPage() {
 
       {/* Use TooltipProvider at a higher level if not already present */}
       <TooltipProvider>
-         <main>
+         <main className="flex-grow"> {/* Add flex-grow to main */}
             {renderContent()}
          </main>
       </TooltipProvider>
 
-
-        {/* Footer moved inside StatisticsDashboard */}
-        {viewState !== 'statistics' && (
-            <footer className="mt-12 border-t pt-6 text-center text-sm text-muted-foreground">
-             © {new Date().getFullYear()} CareerCraft AI. All rights reserved.
-            </footer>
-        )}
+      {/* Footer is now outside the main content rendering */}
+      <footer className="mt-auto border-t pt-6 text-center text-sm text-muted-foreground"> {/* Use mt-auto */}
+         © {new Date().getFullYear()} CareerCraft AI. All rights reserved.
+      </footer>
     </div>
   );
 }
