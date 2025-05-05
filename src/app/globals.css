@@ -334,8 +334,9 @@ body {
 .document-preview.prose {
   color: hsl(var(--foreground)); /* Ensure text color matches theme foreground */
   max-width: none; /* Allow it to fill container */
-  font-size: 0.875rem; /* Equivalent to prose-sm */
-  line-height: 1.6;
+  font-size: 11pt; /* Standard Word doc font size */
+  line-height: 1.5; /* Adjust line height to be slightly more spaced */
+  font-family: 'Times New Roman', Times, serif; /* Default DOCX font */
 }
 
 .document-preview.prose h1,
@@ -345,14 +346,19 @@ body {
 .document-preview.prose h5,
 .document-preview.prose h6 {
   color: hsl(var(--primary)); /* Use primary color for headings */
-  margin-top: 1em;
-  margin-bottom: 0.5em;
+  margin-top: 0.8em; /* Adjusted spacing */
+  margin-bottom: 0.4em;
   font-weight: 600;
+  line-height: 1.2; /* Tighter line height for headings */
 }
+/* Specific heading sizes (adjust as needed) */
+.document-preview.prose h1 { font-size: 16pt; }
+.document-preview.prose h2 { font-size: 14pt; }
+.document-preview.prose h3 { font-size: 12pt; }
 
 .document-preview.prose p {
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
+  margin-top: 0; /* Remove default top margin */
+  margin-bottom: 0.5em; /* Spacing between paragraphs */
 }
 
 .document-preview.prose ul,
@@ -381,19 +387,25 @@ body {
     font-weight: 600; /* Slightly bolder */
     color: inherit; /* Ensure strong tags use foreground color */
 }
-/* Ensure break tags work as expected for line breaks */
+/* Ensure break tags work as expected for line breaks - NO extra space needed */
 .document-preview.prose br {
     content: "";
     display: block;
-    margin-bottom: 0.5em; /* Adjust spacing for <br> if needed */
+    margin-bottom: 0; /* No margin for <br> */
 }
 
 /* Example of targeting specific injected sections if needed */
 .document-preview .employment-item {
   /* Styles for employment items */
+  margin-bottom: 1em; /* Space between job entries */
 }
 .document-preview .education-item {
   /* Styles for education items */
+   margin-bottom: 1em; /* Space between education entries */
+}
+.document-preview .project-item {
+  /* Styles for project items */
+  margin-bottom: 1em; /* Space between project entries */
 }
 
 /* Styles for AI Explanation in Analysis page */

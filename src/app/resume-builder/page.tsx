@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Download, Eye, FileText, FileType } from 'lucide-react'; // Removed Upload icon
+import { ArrowLeft, Download, Eye, FileText, FileType } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   DropdownMenu,
@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 import { saveAs } from 'file-saver'; // For triggering download
 import { generateDocxAction } from '@/actions/generate-docx'; // Import the server action
+import ResumePreview from '@/components/resume-preview'; // Import the new preview component
 
 // Placeholder for template data
 interface Template {
@@ -53,7 +54,7 @@ const templates: Template[] = [
 ];
 
 // Type definition for resume data state
-type ResumeData = {
+export type ResumeData = {
   firstName: string;
   lastName: string;
   email: string;
@@ -181,12 +182,11 @@ export default function ResumeBuilderPage() {
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
       <header className="mb-8 flex items-center justify-between border-b pb-4">
         <Link href="/" passHref>
-          <Button variant="outline" size="icon" className="hover:bg-primary/10 hover:text-primary">
-            <ArrowLeft className="h-5 w-5" />
-            <span className="sr-only">Back to Dashboard</span>
+          <Button variant="outline" size="sm" className="hover:bg-primary/10 hover:text-primary"> {/* Size adjusted */}
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
         </Link>
-        <h1 className="text-2xl font-semibold text-primary">Resume Builder</h1>
+        <h1 className="text-2xl font-semibold text-primary text-center flex-grow">Resume Builder</h1>
          <div className="flex items-center gap-2">
              {!showTemplates && selectedTemplate && (
                 <Button variant="outline" size="sm" onClick={() => {
@@ -235,7 +235,7 @@ export default function ResumeBuilderPage() {
                                 alt={`${template.name} thumbnail`}
                                 width={300}
                                 height={400}
-                                className="w-full object-cover aspect-[3/4]" // Keep image in color
+                                className="w-full object-cover aspect-[3/4]"
                                 data-ai-hint="resume template preview"
                                 priority // Load thumbnails faster
                                 unoptimized // Avoid Next.js image optimization for external URLs like picsum
@@ -249,15 +249,15 @@ export default function ResumeBuilderPage() {
             </div>
         </div>
       ) : (
-         // Editor View (No Preview Pane)
-         // Changed to a single column layout for the editor form
-        <div className="mx-auto max-w-3xl">
-            <Card className="shadow-md">
+         // Editor and Preview View
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Left Column: Editor Form */}
+            <Card className="shadow-md max-h-[85vh] overflow-y-auto">
                  <CardHeader>
                     <CardTitle className="text-xl font-semibold">
                         Edit Content for: {selectedTemplate?.name || 'Selected Template'}
                     </CardTitle>
-                    <p className="text-sm text-muted-foreground">Enter your details below. These will be used to generate the DOCX file.</p>
+                    <p className="text-sm text-muted-foreground">Enter your details below. The preview will update in real-time.</p>
                  </CardHeader>
                  <CardContent className="space-y-6 p-6">
                      {/* Personal Details Section */}
@@ -292,7 +292,6 @@ export default function ResumeBuilderPage() {
                             <Input id="address" value={resumeData.address} onChange={handleInputChange} placeholder="City, Country"/>
                          </div>
                      </fieldset>
-
 
                      {/* Profile Section */}
                      <fieldset className="space-y-1 rounded border p-4 pt-2">
@@ -350,6 +349,20 @@ export default function ResumeBuilderPage() {
 
                  </CardContent>
                </Card>
+
+             {/* Right Column: Preview Pane */}
+             <div className="sticky top-6 h-[85vh] overflow-hidden rounded-lg border shadow-md bg-muted">
+                <CardHeader className="p-4 border-b bg-background">
+                   <CardTitle className="text-lg flex items-center gap-2">
+                     <Eye className="h-5 w-5 text-primary" />
+                     Preview
+                   </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 h-[calc(85vh-65px)] overflow-auto">
+                   {/* Render the ResumePreview component */}
+                   <ResumePreview data={resumeData} />
+                 </CardContent>
+            </div>
         </div>
       )}
        <footer className="mt-12 border-t pt-6 text-center text-sm text-muted-foreground">
