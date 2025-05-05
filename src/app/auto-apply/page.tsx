@@ -27,7 +27,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Switch } from "@/components/ui/switch"; // Import Switch
 import { Slider } from "@/components/ui/slider"; // Import Slider
 import { Separator } from '@/components/ui/separator'; // Import Separator
+// Re-import GooglePlacesAutocomplete
 import GooglePlacesAutocomplete, { geocodeByAddress, getLatLng } from 'react-google-places-autocomplete';
+
 
 interface AppliedJob {
   id: string;
