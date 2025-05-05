@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 import { saveAs } from 'file-saver'; // For triggering download
 import { generateDocxAction } from '@/actions/generate-docx'; // Import the server action
-import ResumePreview from '@/components/resume-preview'; // Import the new preview component
+import ResumePreview from '@/components/resume-preview'; // Import the preview component
 
 // Placeholder for template data
 interface Template {
@@ -50,7 +50,7 @@ const templates: Template[] = [
     path: '/templates/Classic_monochrome_resume.docx', // Assuming this exists
     thumbnail: 'https://picsum.photos/seed/resume3/300/400'
   },
-  // Add more templates here
+  // Add more templates here if needed
 ];
 
 // Type definition for resume data state
@@ -235,7 +235,7 @@ export default function ResumeBuilderPage() {
                                 alt={`${template.name} thumbnail`}
                                 width={300}
                                 height={400}
-                                className="w-full object-cover aspect-[3/4]"
+                                className="w-full object-cover aspect-[3/4] bg-secondary" // Added bg-secondary as placeholder background
                                 data-ai-hint="resume template preview"
                                 priority // Load thumbnails faster
                                 unoptimized // Avoid Next.js image optimization for external URLs like picsum
