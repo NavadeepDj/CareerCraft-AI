@@ -1,3 +1,4 @@
+// src/app/auto-apply/page.tsx
 'use client';
 
 import React, { useState, useCallback, ChangeEvent } from 'react';
@@ -121,8 +122,6 @@ After reading the job description and requirements and matching it with my own e
 
 Please take a moment to go through it to get a better picture of who I am. I would love to talk to you in more detail regarding this opportunity.
 
- 
-
 Sincerely,
 
 {{USER_FIRSTNAME}} {{USER_LASTNAME}}`
@@ -202,13 +201,9 @@ Best regards,
 
 I checked your website and social profiles recently, and I came across your job posting regarding the {{JOB_TITLE}} opening at {{JOB_LOCATION}}. I am interested in applying my knowledge in a real project at {{COMPANY_NAME}} where I believe I will also be able to learn many new things! For this reason, I'd like to find out if you have opportunities related to my profile.
 
- 
-
 I have attached my resume to let you learn more about me.
 
 I would love to talk to you in more detail. Let me know your availability in the coming weeks.
-
- 
 
 Thanks,
 {{USER_FIRSTNAME}} {{USER_LASTNAME}}`
@@ -299,8 +294,6 @@ Is the position of {{JOB_TITLE}} still open or did you already find someone?
 
 I like {{JOB_LOCATION}} a lot, so I would be very interested to discuss more this opportunity in more detail at {{COMPANY_NAME}}.
 
- 
-
 You can find my cv attached. Let me know if you need any other detail.
 
 I would love to talk to you soon.
@@ -386,13 +379,9 @@ I also found this job posting: {{JOB_URL}}. Is the position still open?
 
 I would be very interested to work as a {{JOB_TITLE}} in {{JOB_LOCATION}}. I already have offers in similar positions, so I am currently evaluating them in order to decide my next steps.
 
- 
-
 You can find my cv attached (if you need any other document or details about my experience let me know).
 
 Feel free to contact me to arrange a skype call to discuss more.
-
- 
 
 Thanks,
 {{USER_FIRSTNAME}} {{USER_LASTNAME}}`
@@ -445,13 +434,9 @@ const myTemplates: EmailTemplate[] = [
 
 I checked your website and social profiles recently, and I came across your job posting regarding the {{JOB_TITLE}} opening at {{JOB_LOCATION}}. I am interested in applying my knowledge in a real project at {{COMPANY_NAME}} where I believe I will also be able to learn many new things! For this reason, I'd like to find out if you have opportunities related to my profile.
 
- 
-
 I have attached my resume to let you learn more about me.
 
 I would love to talk to you in more detail. Let me know your availability in the coming weeks.
-
- 
 
 Thanks,
 {{USER_FIRSTNAME}} {{USER_LASTNAME}}`,
@@ -472,7 +457,7 @@ const Stepper: React.FC<{ currentStep: ConfigureStep }> = ({ currentStep }) => {
     return (
         <div className="mb-8 flex items-center justify-center space-x-4 md:space-x-8">
             {steps.map((step, index) => (
-                <div key={step.id} className="flex items-center">
+                <div key={step.id} className="flex items-center"> {/* Ensure key is on the outer element */}
                     <div
                         className={cn(
                             "flex h-8 w-8 items-center justify-center rounded-full border-2 font-semibold",
@@ -538,6 +523,10 @@ const StatisticsDashboard: React.FC<{ onConfigure: () => void }> = ({ onConfigur
                 Configure New Simulation Loop
             </Button>
         </CardFooter>
+         {/* Footer added to Statistics view */}
+        <footer className="mt-12 border-t pt-6 text-center text-sm text-muted-foreground">
+         © {new Date().getFullYear()} CareerCraft AI. All rights reserved.
+        </footer>
     </Card>
   );
 };
@@ -698,7 +687,38 @@ export default function AutoApplyPage() {
   };
   const onTestEmailRecipientChange = (e: ChangeEvent<HTMLInputElement>) => setTestEmailRecipient(e.target.value);
 
-  // Step 3
+  // --- Salary Validation Function ---
+  const validateSalaryRange = (currentMin: string, currentMax: string) => {
+    const minVal = parseFloat(currentMin);
+    const maxVal = parseFloat(currentMax);
+
+    if (!isNaN(minVal) && !isNaN(maxVal) && minVal > maxVal) {
+      toast({
+        title: "Invalid Salary Range",
+        description: "Minimum salary cannot be greater than maximum salary.",
+        variant: "destructive",
+      });
+      return false; // Indicate validation failure
+    }
+    return true; // Indicate validation success
+  };
+
+
+  // --- Updated Salary Input Handlers ---
+  const onMinSalaryChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newMinSalary = e.target.value;
+    setMinSalary(newMinSalary);
+    validateSalaryRange(newMinSalary, maxSalary); // Validate on change
+  };
+
+  const onMaxSalaryChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const newMaxSalary = e.target.value;
+    setMaxSalary(newMaxSalary);
+    validateSalaryRange(minSalary, newMaxSalary); // Validate on change
+  };
+
+
+  // Step 3 (Continued)
   const onMasterAutoApplyChange = (checked: boolean) => {
       setMasterAutoApply(checked);
       // If master is turned off, ensure sub-options are also off
@@ -716,8 +736,6 @@ export default function AutoApplyPage() {
   const onCityLocationChange = (e: ChangeEvent<HTMLInputElement>) => setCityLocation(e.target.value);
   const onCoverLetterContentChange = (e: ChangeEvent<HTMLTextAreaElement>) => setCoverLetterContent(e.target.value);
   const onDesiredSalaryCurrencyChange = (value: string) => setDesiredSalaryCurrency(value);
-  const onMinSalaryChange = (e: ChangeEvent<HTMLInputElement>) => setMinSalary(e.target.value);
-  const onMaxSalaryChange = (e: ChangeEvent<HTMLInputElement>) => setMaxSalary(e.target.value);
   // Updated handler for the 3-step slider
   const onJobMatchLevelChange = (value: number[]) => setJobMatchLevel(value[0]); // Value will be 0, 1, or 2
 
@@ -880,13 +898,11 @@ export default function AutoApplyPage() {
          toast({ title: "Missing Required Fields", description: "Please provide your Phone number and City in the Settings tab.", variant: "destructive" });
          return;
      }
-     // Salary validation
-     const minSalaryNum = parseFloat(minSalary);
-     const maxSalaryNum = parseFloat(maxSalary);
-     if (!isNaN(minSalaryNum) && !isNaN(maxSalaryNum) && minSalaryNum > maxSalaryNum) {
-       setConfigureStep('settings');
-       toast({ title: "Invalid Salary Range", description: "Minimum salary cannot be greater than maximum salary.", variant: "destructive" });
-       return;
+     // Salary validation - Re-validate before starting the loop
+     if (!validateSalaryRange(minSalary, maxSalary)) {
+        setConfigureStep('settings');
+        // Toast is already shown by validateSalaryRange
+        return;
      }
 
 
@@ -979,15 +995,12 @@ export default function AutoApplyPage() {
              toast({ title: "Missing Required Fields", description: "Please provide your Phone number and City.", variant: "destructive" });
              return;
          }
-          // Validate Salary Range
-         const minSalaryNum = parseFloat(minSalary);
-         const maxSalaryNum = parseFloat(maxSalary);
-         if (!isNaN(minSalaryNum) && !isNaN(maxSalaryNum) && minSalaryNum > maxSalaryNum) {
-           toast({ title: "Invalid Salary Range", description: "Minimum salary cannot be greater than maximum salary.", variant: "destructive" });
-           return;
+         // Validate Salary Range
+         if (!validateSalaryRange(minSalary, maxSalary)) {
+             // Toast is already shown by the validation function
+             return;
          }
-         // Add more validation if needed (e.g., salary format)
-        setConfigureStep('review');
+         setConfigureStep('review');
     } else if (configureStep === 'review') {
         // Review step is the last step before running
         handleStartTheLoop(); // Trigger simulation from review step's "Next" (now "START THE LOOP")
@@ -1083,24 +1096,24 @@ export default function AutoApplyPage() {
             // Container for the configuration steps
              return (
                     <Card className="shadow-lg max-w-5xl mx-auto"> {/* Increased max-width */}
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-xl">
-                            Automate your job search {/* Updated Title */}
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>A "Loop" represents an automated job search <br /> and application simulation based on your criteria.</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </CardTitle>
-                        {/* Removed CardDescription */}
-                         {/* Stepper Component */}
-                        <Stepper currentStep={configureStep} />
-                    </CardHeader>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-xl">
+                                Automate your job search {/* Updated Title */}
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>A "Loop" represents an automated job search <br /> and application simulation based on your criteria.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </CardTitle>
+                            {/* Removed CardDescription */}
+                            {/* Stepper Component */}
+                            <Stepper currentStep={configureStep} />
+                        </CardHeader>
 
 
                     {/* --- Step 1: Search Info --- */}
@@ -1488,18 +1501,6 @@ export default function AutoApplyPage() {
                                      </div>
                                      <Switch id="autoFillForms" checked={autoFillForms} onCheckedChange={onAutoFillFormsChange} disabled={!masterAutoApply}/>
                                  </div>
-                                  <div className="flex items-start justify-between gap-4 rounded-md border p-4">
-                                      <div className="flex items-center gap-2">
-                                         <Label htmlFor="aiAnswering" className="font-medium">AI answering <Badge variant="outline" className="text-xs">BETA</Badge></Label>
-                                          <TooltipProvider>
-                                              <Tooltip>
-                                                  <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
-                                                  <TooltipContent><p>Allow AI to answer questions during the application process.</p></TooltipContent>
-                                              </Tooltip>
-                                          </TooltipProvider>
-                                      </div>
-                                      <Switch id="aiAnswering" checked={aiAnswering} onCheckedChange={onAiAnsweringChange} disabled={!masterAutoApply}/>
-                                  </div>
                               </div>
 
 
@@ -1979,11 +1980,12 @@ export default function AutoApplyPage() {
       </TooltipProvider>
 
 
-        <footer className="mt-12 border-t pt-6 text-center text-sm text-muted-foreground">
-         © {new Date().getFullYear()} CareerCraft AI. All rights reserved.
-      </footer>
+        {/* Footer moved inside StatisticsDashboard */}
+        {viewState !== 'statistics' && (
+            <footer className="mt-12 border-t pt-6 text-center text-sm text-muted-foreground">
+             © {new Date().getFullYear()} CareerCraft AI. All rights reserved.
+            </footer>
+        )}
     </div>
   );
 }
-
-    
