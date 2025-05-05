@@ -31,30 +31,44 @@ interface Template {
     aiHint: string; // Hint for image generation/replacement
 }
 
-// Updated templates array with correct paths and more specific AI hints
+// Updated templates array based on user request
 const templates: Template[] = [
   {
+    id: 'ats_simple_food_service',
+    name: 'ATS Simple Food Service Resume',
+    path: '/templates/ATS simple food service resume.docx',
+    aiHint: 'ats resume food service simple clean',
+  },
+  {
+    id: 'modern_bold_sales',
+    name: 'Modern Bold Sales Resume',
+    path: '/templates/Modern bold sales resume.docx',
+    aiHint: 'modern bold resume sales professional',
+  },
+  {
     id: 'stylish_sales',
-    name: 'Stylish Sales',
-    path: '/templates/Stylish_sales_resume.docx',
-    // thumbnail: 'https://picsum.photos/seed/stylish_sales/300/400',
+    name: 'Stylish Sales Resume',
+    path: '/templates/Stylish sales resume.docx',
     aiHint: 'stylish modern resume sales professional',
   },
   {
-    id: 'modern_professional',
-    name: 'Modern Professional',
-    path: '/templates/Modern_professional_resume.docx',
-    // thumbnail: 'https://picsum.photos/seed/modern_prof/300/400',
-    aiHint: 'modern professional resume clean design',
+    id: 'attorney_resume',
+    name: 'Attorney Resume',
+    path: '/templates/Attorney resume.docx',
+    aiHint: 'professional attorney resume legal',
   },
   {
-    id: 'classic_monochrome',
-    name: 'Classic Monochrome',
-    path: '/templates/Classic_monochrome_resume.docx',
-    // thumbnail: 'https://picsum.photos/seed/classic_mono/300/400',
-    aiHint: 'classic monochrome resume traditional layout',
+    id: 'modern_hospitality',
+    name: 'Modern Hospitality Resume',
+    path: '/templates/Modern hospitality resume.docx',
+    aiHint: 'modern hospitality resume service industry',
   },
-  // Add more templates here if needed, ensuring the .docx files exist in public/templates
+  {
+    id: 'industry_manager',
+    name: 'Industry Manager Resume',
+    path: '/templates/Industry manager resume.docx',
+    aiHint: 'manager resume industry professional',
+  },
 ];
 
 
