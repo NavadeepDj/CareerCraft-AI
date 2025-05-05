@@ -20,8 +20,7 @@ import LoadingSpinner from '@/components/loading-spinner';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
 import { saveAs } from 'file-saver'; // For triggering download
-import htmlToDocx from 'html-to-docx'; // For HTML to DOCX conversion
-
+import { generateDocxAction } from '@/actions/generate-docx'; // Import the server action
 
 // Placeholder for template data
 interface Template {
@@ -76,20 +75,6 @@ async function convertDocxToHtml(fileBlob: Blob): Promise<string> {
 }
 
 
-// // Placeholder download function (REPLACED)
-// const downloadFile = (filename: string, content: string, mimeType: string) => {
-//   if (typeof window !== 'undefined') {
-//     const element = document.createElement('a');
-//     const file = new Blob([content], { type: mimeType });
-//     element.href = URL.createObjectURL(file);
-//     element.download = filename;
-//     document.body.appendChild(element); // Required for this to work in FireFox
-//     element.click();
-//     document.body.removeChild(element);
-//     URL.revokeObjectURL(element.href); // Clean up
-//   }
-// };
-
 export default function ResumeBuilderPage() {
     const { toast } = useToast();
     // Initial state matching the screenshot's example data
@@ -110,30 +95,34 @@ export default function ResumeBuilderPage() {
         academicProjects: `Project using C language\nImplemented denomination in ATM code in C.\n\nProject using Python\nParking management system using Python.\n\nB-EEE\nElectric powered Bicycle.` // Added based on preview
     });
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null); // Start with no template selected
-    const [previewHtml, setPreviewHtml] = useState<string>(''); // Store the raw injected HTML for download
-    const [isLoadingPreview, setIsLoadingPreview] = useState<boolean>(false); // Don't load initially
+    const [rawTemplateHtml, setRawTemplateHtml] = useState<string | null>(null); // Store the raw HTML from DOCX conversion
+    const [previewHtml, setPreviewHtml] = useState<string>(''); // Store the final injected HTML for display and download
+    const [isLoadingPreview, setIsLoadingPreview] = useState<boolean>(false); // Track loading state
     const [isClient, setIsClient] = useState(false);
     const [showTemplates, setShowTemplates] = useState(true); // Start by showing templates
 
     // Function to handle injecting data into HTML template string
     // This now returns only the inner HTML content for the docx conversion
     const injectDataIntoHtml = (html: string, data: typeof resumeData): string => {
+        if (!html) return '<p>Template not loaded.</p>'; // Handle case where raw HTML is not ready
         let processedHtml = html;
 
         Object.entries(data).forEach(([key, value]) => {
             const simplePlaceholder = new RegExp(`{{\\s*${key}\\s*}}`, 'gi');
-            let formattedValue = typeof value === 'string' ? value.replace(/\n/g, '<br>') : '';
+            // Ensure value is treated as a string, handle potential null/undefined
+            const stringValue = (typeof value === 'string' || typeof value === 'number') ? String(value) : '';
+            let formattedValue = stringValue.replace(/\n/g, '<br>');
 
             // Handle specific list placeholders if they exist in the template
-             if (key === 'skills' && typeof value === 'string' && value.trim() && (processedHtml.includes('{{skillsList}}') || processedHtml.includes('{{ skillsList }}'))) {
-                const skillsListHtml = value.split(',')
+            if (key === 'skills' && stringValue.trim() && (processedHtml.includes('{{skillsList}}') || processedHtml.includes('{{ skillsList }}'))) {
+                const skillsListHtml = stringValue.split(',')
                     .map(skill => skill.trim())
                     .filter(skill => skill)
                     .map(skill => `<li>${skill}</li>`).join('');
                 processedHtml = processedHtml.replace(/{{\s*skillsList\s*}}/gi, `<ul class="list-disc pl-5">${skillsListHtml}</ul>`);
             }
-             else if (key === 'employmentHistory' && typeof value === 'string' && value.trim() && (processedHtml.includes('{{employmentHistoryList}}') || processedHtml.includes('{{ employmentHistoryList }}'))) {
-                 const historyItems = value.split('\n\n').map(item => {
+             else if (key === 'employmentHistory' && stringValue.trim() && (processedHtml.includes('{{employmentHistoryList}}') || processedHtml.includes('{{ employmentHistoryList }}'))) {
+                 const historyItems = stringValue.split('\n\n').map(item => {
                     const lines = item.split('\n');
                     const titleLine = lines[0] || ''; // e.g., Company, Role
                     const dateLine = lines[1] || ''; // e.g., Date Range
@@ -148,8 +137,8 @@ export default function ResumeBuilderPage() {
                  }).join('');
                  processedHtml = processedHtml.replace(/{{\s*employmentHistoryList\s*}}/gi, historyItems);
             }
-             else if (key === 'education' && typeof value === 'string' && value.trim() && (processedHtml.includes('{{educationList}}') || processedHtml.includes('{{ educationList }}'))) {
-                 const educationItems = value.split('\n\n').map(item => {
+             else if (key === 'education' && stringValue.trim() && (processedHtml.includes('{{educationList}}') || processedHtml.includes('{{ educationList }}'))) {
+                 const educationItems = stringValue.split('\n\n').map(item => {
                     const lines = item.split('\n');
                     const degreeLine = lines[0] || ''; // e.g., Degree, Institution, Location
                     const dateLine = lines[1] || ''; // e.g., Date Range
@@ -161,8 +150,8 @@ export default function ResumeBuilderPage() {
                 }).join('');
                 processedHtml = processedHtml.replace(/{{\s*educationList\s*}}/gi, `<div class="education-section">${educationItems}</div>`);
              }
-            else if (key === 'academicProjects' && typeof value === 'string' && value.trim() && (processedHtml.includes('{{academicProjectsList}}') || processedHtml.includes('{{ academicProjectsList }}'))) {
-                 const projectItems = value.split('\n\n').map(item => {
+            else if (key === 'academicProjects' && stringValue.trim() && (processedHtml.includes('{{academicProjectsList}}') || processedHtml.includes('{{ academicProjectsList }}'))) {
+                 const projectItems = stringValue.split('\n\n').map(item => {
                     const lines = item.split('\n');
                     const titleLine = lines[0] || ''; // Project Title
                      // Remaining lines are descriptions
@@ -175,15 +164,15 @@ export default function ResumeBuilderPage() {
                  }).join('');
                  processedHtml = processedHtml.replace(/{{\s*academicProjectsList\s*}}/gi, `<div class="academic-projects-section">${projectItems}</div>`);
              }
-             else if (key === 'languages' && typeof value === 'string' && value.trim() && (processedHtml.includes('{{languagesList}}') || processedHtml.includes('{{ languagesList }}'))) {
-                 const languageItems = value.split('\n')
+             else if (key === 'languages' && stringValue.trim() && (processedHtml.includes('{{languagesList}}') || processedHtml.includes('{{ languagesList }}'))) {
+                 const languageItems = stringValue.split('\n')
                     .map(lang => lang.trim())
                     .filter(lang => lang)
                     .map(lang => `<li>${lang}</li>`).join('');
                  processedHtml = processedHtml.replace(/{{\s*languagesList\s*}}/gi, `<ul class="list-disc pl-5">${languageItems}</ul>`);
              }
-              else if (key === 'references' && typeof value === 'string' && value.trim() && (processedHtml.includes('{{referencesList}}') || processedHtml.includes('{{ referencesList }}'))) {
-                 const referenceItems = value.split('\n\n').map(item => {
+              else if (key === 'references' && stringValue.trim() && (processedHtml.includes('{{referencesList}}') || processedHtml.includes('{{ referencesList }}'))) {
+                 const referenceItems = stringValue.split('\n\n').map(item => {
                     const lines = item.split('\n');
                     const nameLine = lines[0] || ''; // Name, Title, Company
                     const contactLine = lines[1] || ''; // Contact Info
@@ -217,27 +206,30 @@ export default function ResumeBuilderPage() {
         return processedHtml;
     };
 
-
-    const loadTemplatePreview = useCallback(async (templateId: string | null) => {
+    // Load and convert the DOCX template ONCE when selected
+    const loadTemplateAndConvert = useCallback(async (templateId: string | null) => {
         if (!isClient || !templateId) {
+            setRawTemplateHtml(null); // Clear raw template if no template selected
             setPreviewHtml('<div class="flex h-full items-center justify-center bg-secondary text-muted-foreground">Select a template to begin.</div>');
             return;
         }
 
         setIsLoadingPreview(true);
+        setRawTemplateHtml(null); // Clear previous raw template
         const template = templates.find(t => t.id === templateId);
 
         if (!template) {
+            setRawTemplateHtml(null);
             setPreviewHtml('<p class="p-4 text-center text-red-600">Template not found.</p>');
             setIsLoadingPreview(false);
-             toast({ title: "Error", description: "Selected template could not be found.", variant: "destructive" });
+            toast({ title: "Error", description: "Selected template could not be found.", variant: "destructive" });
             return;
         }
 
         try {
-             if (!template.path || typeof template.path !== 'string') {
-               throw new Error('Invalid template path configuration.');
-             }
+            if (!template.path || typeof template.path !== 'string') {
+                throw new Error('Invalid template path configuration.');
+            }
 
             // Fetch the DOCX template file
             const response = await fetch(template.path);
@@ -246,32 +238,32 @@ export default function ResumeBuilderPage() {
             }
             const blob = await response.blob();
 
-            // Convert DOCX to raw HTML
-            let rawHtml = await convertDocxToHtml(blob);
+            // Convert DOCX to raw HTML using Mammoth
+            const rawHtmlContent = await convertDocxToHtml(blob);
+
+            // Store the raw HTML
+            setRawTemplateHtml(rawHtmlContent);
 
             // Check if conversion itself returned an error message
-             if (rawHtml.includes("Error loading resume preview")) {
-                 // Display the error from conversion directly
-                 setPreviewHtml(`<div class='p-4 text-center text-red-600'>${rawHtml}</div>`);
-             } else if (rawHtml.includes("Preview library (Mammoth.js) is loading")) {
-                 // Display the Mammoth loading message
-                 setPreviewHtml(`<div class='p-4 text-center text-orange-600'>${rawHtml}</div>`);
-             } else {
-                // Inject current resumeData into the raw HTML
-                const injectedHtmlContent = injectDataIntoHtml(rawHtml, resumeData);
-                 // Store the raw injected content for potential download
-                setPreviewHtml(injectedHtmlContent);
-             }
+            if (rawHtmlContent.includes("Error loading resume preview") || rawHtmlContent.includes("Preview library (Mammoth.js) is loading")) {
+                 // Display the error/loading message from conversion directly
+                 setPreviewHtml(`<div class='p-4 text-center ${rawHtmlContent.includes("Error") ? 'text-red-600' : 'text-orange-600'}'>${rawHtmlContent}</div>`);
+            } else {
+                // Inject current resumeData into the newly converted raw HTML
+                const injectedHtml = injectDataIntoHtml(rawHtmlContent, resumeData);
+                setPreviewHtml(injectedHtml); // Update the display preview
+            }
 
         } catch (error) {
-            console.error('Error loading template preview:', error);
+            console.error('Error loading and converting template:', error);
             const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+            setRawTemplateHtml(null); // Clear raw template on error
             setPreviewHtml(`<div class='p-4 text-center text-red-600'>Error loading preview: ${errorMessage}</div>`);
             toast({ title: "Preview Error", description: errorMessage, variant: "destructive" });
         } finally {
             setIsLoadingPreview(false);
         }
-    }, [isClient, resumeData, toast]); // Include resumeData and toast dependencies
+    }, [isClient, resumeData, toast]); // Add resumeData to dependencies here
 
 
     useEffect(() => {
@@ -292,7 +284,7 @@ export default function ResumeBuilderPage() {
                      console.log("Mammoth.js loaded successfully.");
                      // Attempt to reload preview if a template is selected and we are in editor view
                      if (selectedTemplate && !showTemplates) {
-                        loadTemplatePreview(selectedTemplate);
+                        loadTemplateAndConvert(selectedTemplate); // Use the combined function
                      }
                  }
                  script.onerror = () => {
@@ -305,7 +297,7 @@ export default function ResumeBuilderPage() {
                 document.body.appendChild(script);
              } else if (isClient && selectedTemplate && !showTemplates && (window as any).mammoth) {
                  // If Mammoth is already loaded, trigger preview load immediately
-                 loadTemplatePreview(selectedTemplate);
+                 loadTemplateAndConvert(selectedTemplate); // Use the combined function
              } else if (!selectedTemplate || showTemplates) {
                  // If no template selected or showing gallery, stop loading indicator
                  setIsLoadingPreview(false);
@@ -314,31 +306,30 @@ export default function ResumeBuilderPage() {
 
         loadMammothScript();
 
-         // Cleanup script on unmount (optional, but good practice)
-         return () => {
-            const script = document.getElementById('mammoth-script');
-            if (script && script.parentNode) {
-                // script.parentNode.removeChild(script); // Temporarily disabled to check if removal causes issues on fast navigation
-            }
-         };
-    }, [isClient, selectedTemplate, showTemplates, loadTemplatePreview, toast]); // Dependencies
+        // Cleanup script on unmount (optional, but good practice)
+        // return () => {
+        //     const script = document.getElementById('mammoth-script');
+        //     if (script && script.parentNode) {
+        //         script.parentNode.removeChild(script);
+        //     }
+        // };
+    }, [isClient, selectedTemplate, showTemplates, loadTemplateAndConvert, toast]); // Dependencies updated
 
 
+    // Effect to update preview ONLY when resumeData changes (if raw template exists)
     useEffect(() => {
-        // Debounced effect to reload preview when resumeData changes
-        if (!showTemplates && selectedTemplate && isClient && (window as any).mammoth) {
-            const handler = setTimeout(() => {
-                loadTemplatePreview(selectedTemplate);
-            }, 500); // Debounce time (e.g., 500ms)
-
-            return () => clearTimeout(handler); // Cleanup timeout on change or unmount
+        if (!showTemplates && selectedTemplate && rawTemplateHtml && !isLoadingPreview) {
+            // Use the stored raw template HTML to inject data and update preview
+            const injectedHtml = injectDataIntoHtml(rawTemplateHtml, resumeData);
+            setPreviewHtml(injectedHtml);
+        } else if (showTemplates) {
+            // If showing templates, reset the preview
+            setPreviewHtml('<div class="flex h-full items-center justify-center bg-secondary text-muted-foreground">Select a template to begin.</div>');
+            setRawTemplateHtml(null); // Clear raw template HTML as well
         }
-         // If showing templates, ensure loading indicator is off and preview is cleared
-        if (showTemplates) {
-             setIsLoadingPreview(false);
-             setPreviewHtml('<div class="flex h-full items-center justify-center bg-secondary text-muted-foreground">Select a template to begin.</div>'); // Reset preview
-        }
-    }, [resumeData, selectedTemplate, showTemplates, isClient, loadTemplatePreview]); // Re-run when these change
+        // No need for debouncing here anymore as Mammoth conversion happens only once on template select.
+        // Dependency array includes resumeData, rawTemplateHtml, etc. to react to changes.
+    }, [resumeData, rawTemplateHtml, selectedTemplate, showTemplates, isLoadingPreview]);
 
 
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -349,21 +340,30 @@ export default function ResumeBuilderPage() {
     const handleTemplateSelect = (templateId: string) => {
         setSelectedTemplate(templateId);
         setShowTemplates(false); // Hide template selection and show editor/preview
-        // Preview will be loaded by the useEffect hook that depends on selectedTemplate and showTemplates
+        // Trigger the loading and conversion process
+        loadTemplateAndConvert(templateId); // Call the combined function
         setIsLoadingPreview(true); // Show loading indicator immediately
     };
 
      const handleDownload = async (format: 'word' | 'pdf') => {
          console.log(`Download requested in ${format} format`);
 
-         if (!previewHtml || previewHtml.startsWith('<div')) {
+         if (!previewHtml || previewHtml.startsWith('<div class="flex h-full items-center justify-center')) {
              toast({
                  title: "Preview Not Ready",
-                 description: "Please wait for the preview to load or select a template.",
+                 description: "Please select a template and wait for the preview to load.",
                  variant: "destructive",
              });
              return;
          }
+          if (previewHtml.includes("Error loading resume preview") || previewHtml.includes("Preview library (Mammoth.js) is loading")) {
+                toast({
+                    title: "Preview Error",
+                    description: "Cannot download due to a preview loading error.",
+                    variant: "destructive",
+                });
+                return;
+            }
 
          const fileNameBase = `${resumeData.lastName}_${resumeData.firstName}_Resume`.replace(/\s+/g, '_');
 
@@ -373,76 +373,77 @@ export default function ResumeBuilderPage() {
                      title: "Generating DOCX...",
                      description: "This may take a moment.",
                  });
-                 // Construct the full HTML document structure needed by html-to-docx
-                 // Include basic styles inline or via a <style> tag if needed
-                 // Ensure the main content is wrapped appropriately
-                 const fullHtml = `
+
+                 // Construct the full HTML document structure WITH basic styles
+                 // These styles are critical for html-to-docx to understand structure and basic formatting
+                  const fullHtml = `
                      <!DOCTYPE html>
                      <html lang="en">
                      <head>
                          <meta charset="UTF-8">
                          <title>Resume</title>
                          <style>
-                             /* Add any essential base styles here */
-                             body { font-family: sans-serif; font-size: 11pt; color: #000; }
-                             h1, h2, h3, h4 { margin: 0.5em 0; color: #000; }
-                             p { margin: 0.2em 0; }
-                             ul { margin: 0.5em 0; padding-left: 20px; }
-                             li { margin-bottom: 0.2em; }
-                             .text-muted-foreground { color: #666; } /* Example */
-                             .font-semibold { font-weight: 600; } /* Example */
-                             .text-sm { font-size: 10pt; } /* Example */
-                             .mb-2 { margin-bottom: 0.5rem; }
+                             /* Minimal CSS for html-to-docx structure - Adjust based on template needs */
+                             body { font-family: sans-serif; font-size: 11pt; color: #000; margin: 1in; }
+                             p, li, div, h1, h2, h3, h4, h5, h6 { margin-bottom: 0.1in; line-height: 1.15; } /* Basic spacing */
+                             h1, h2, h3, h4, h5, h6 { font-weight: bold; margin-top: 0.2in; }
+                             h1 { font-size: 16pt; }
+                             h2 { font-size: 14pt; }
+                             h3 { font-size: 12pt; }
+                             ul { list-style-type: disc; margin-left: 0.25in; }
+                             ol { list-style-type: decimal; margin-left: 0.25in; }
+                             strong, b { font-weight: bold; }
+                             em, i { font-style: italic; }
+                             u { text-decoration: underline; }
+                             /* Add specific styles from the preview if needed, e.g., */
+                             .text-muted-foreground { color: #666; }
+                             .font-semibold { font-weight: 600; }
+                             .text-sm { font-size: 10pt; }
+                             .mb-2 { margin-bottom: 0.5rem; } /* Example Tailwind conversion */
                              .mb-4 { margin-bottom: 1rem; }
                              .mt-1 { margin-top: 0.25rem; }
-                             .pl-5 { padding-left: 1.25rem; } /* Approximation for Tailwind pl-5 */
-                             .list-disc { list-style-type: disc; }
-                             /* Add other minimal styles based on the visual preview */
+                             .pl-5 { padding-left: 1.25rem; } /* Check if margin-left is better */
+                             /* Add styles for headings to match resume builder/prose */
+                              h1, h2, h3, h4, h5, h6 { color: black; } /* Use black instead of primary */
+                              p { color: black; } /* Ensure paragraphs are black */
                          </style>
                      </head>
                      <body>
-                         ${previewHtml} {/* Use the raw injected HTML */}
+                         ${previewHtml} {/* Use the injected HTML content */}
                      </body>
                      </html>
                  `;
 
-                 const docxBlob = await htmlToDocx(fullHtml, undefined, {
-                     margins: { top: 720, right: 720, bottom: 720, left: 720 }, // Standard 1-inch margins in twentieths of a point
-                 });
+                // Call the server action
+                const docxBlob = await generateDocxAction(fullHtml);
 
-                 saveAs(docxBlob, `${fileNameBase}.docx`);
-
-                 toast({
-                     title: "DOCX Download Started",
-                     description: "Your resume has been downloaded.",
-                 });
+                if (docxBlob) {
+                    saveAs(docxBlob, `${fileNameBase}.docx`);
+                    toast({
+                        title: "DOCX Download Started",
+                        description: "Your resume has been downloaded.",
+                    });
+                } else {
+                    throw new Error("Server action returned no data or failed.");
+                }
 
              } catch (error) {
                  console.error("Error generating DOCX:", error);
                  toast({
                      title: "DOCX Generation Failed",
-                     description: `Could not generate Word file. ${error instanceof Error ? error.message : ''}`,
+                     description: `Could not generate Word file. ${error instanceof Error ? error.message : 'Check console for details.'}`,
                      variant: "destructive",
                  });
              }
          } else if (format === 'pdf') {
-             // PDF generation is more complex client-side.
-             // Requires a library like jsPDF or pdf-lib combined with HTML-to-canvas (like html2canvas).
-             // This is a placeholder for now.
+             // PDF generation placeholder remains the same
              toast({
                  title: "PDF Download (Not Implemented)",
-                 description: "Client-side PDF generation is complex and not fully implemented in this demo. Consider server-side generation.",
+                 description: "Client-side PDF generation is complex. DOCX download is recommended.",
                  variant: "destructive",
              });
-             // Example using jsPDF (would require installation and more setup):
-             // try {
-             //    const { jsPDF } = await import('jspdf');
-             //    const doc = new jsPDF();
-             //    // You'd likely need html2canvas to render the HTML preview onto the PDF
-             //    // doc.html(previewHtmlContainerElement, { ... });
-             //    doc.text("PDF Generation Placeholder", 10, 10);
-             //    doc.save(`${fileNameBase}.pdf`);
-             // } catch (error) { ... }
+             // Potential future implementation: Use a library like jsPDF or html2pdf.js,
+             // or preferably, a server-side PDF generation service.
          }
      };
 
@@ -458,22 +459,27 @@ export default function ResumeBuilderPage() {
         <h1 className="text-2xl font-semibold text-primary">Resume Builder</h1>
          <div className="flex items-center gap-2">
              {!showTemplates && (
-                <Button variant="outline" size="sm" onClick={() => setShowTemplates(true)}>
+                <Button variant="outline" size="sm" onClick={() => {
+                    setShowTemplates(true);
+                    setSelectedTemplate(null); // Clear selection when going back to templates
+                    setRawTemplateHtml(null); // Clear raw HTML
+                    setPreviewHtml(''); // Clear preview
+                }}>
                     <Eye className="mr-2 h-4 w-4" /> Change Template
                  </Button>
              )}
              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="default" size="sm" disabled={showTemplates || !selectedTemplate}>
+                  <Button variant="default" size="sm" disabled={showTemplates || !selectedTemplate || isLoadingPreview}>
                       <Download className="mr-2 h-4 w-4" /> Download
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleDownload('word')} disabled={showTemplates || !selectedTemplate}>
+                  <DropdownMenuItem onClick={() => handleDownload('word')} disabled={showTemplates || !selectedTemplate || isLoadingPreview}>
                     <FileType className="mr-2 h-4 w-4" />
                     <span>Word (.docx)</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleDownload('pdf')} disabled={showTemplates || !selectedTemplate}>
+                  <DropdownMenuItem onClick={() => handleDownload('pdf')} disabled={showTemplates || !selectedTemplate || isLoadingPreview}>
                     <FileText className="mr-2 h-4 w-4" />
                      <span>PDF (.pdf)</span>
                   </DropdownMenuItem>
@@ -500,7 +506,7 @@ export default function ResumeBuilderPage() {
                                 alt={`${template.name} thumbnail`}
                                 width={300}
                                 height={400}
-                                className="w-full object-cover aspect-[3/4]" // Removed grayscale filter
+                                className="w-full object-cover aspect-[3/4]" // Keep image in color
                                 data-ai-hint="resume template preview"
                                 priority // Load thumbnails faster
                                 unoptimized // Avoid Next.js image optimization for external URLs like picsum
@@ -622,22 +628,20 @@ export default function ResumeBuilderPage() {
                        <LoadingSpinner /> {/* Use the new spinner */}
                      </div>
                    ) : previewHtml && !previewHtml.includes("Error loading resume preview") && !previewHtml.includes("Preview library (Mammoth.js) is loading") ? (
-                     // The container *inside* which the dangerouslySetInnerHTML is rendered
-                     // handles the scrolling and background.
-                     <div className="h-full w-full overflow-auto bg-muted p-4"> {/* Changed background to muted (light gray) */}
-                         {/* Render the HTML inside a div that mimics a document page */}
+                     // Container for scrolling
+                     <div className="h-full w-full overflow-auto bg-muted p-4"> {/* Light gray background for scroll area */}
+                         {/* Page-like container for the HTML content */}
                          <div
-                             id="resume-preview-content" // Added ID for potential PDF generation
-                             className="mx-auto max-w-3xl bg-white p-8 shadow-md document-preview" // Kept preview content white
-                             // Apply prose styles directly for base formatting
-                             // Use prose-sm for smaller text, max-w-none to fill container
-                             // Use text-black for explicit black text color
+                             id="resume-preview-content" // ID for potential PDF generation
+                             className="mx-auto max-w-3xl bg-white p-8 shadow-md document-preview" // White background for the "page"
+                             // Apply basic prose styles here + raw HTML from Mammoth
                              dangerouslySetInnerHTML={{ __html: `<div class="prose prose-sm max-w-none text-black">${previewHtml}</div>` }}
                          />
                      </div>
                    ) : (
-                     <div className="flex h-full items-center justify-center bg-secondary text-muted-foreground">
-                        {/* Display error or initial message */}
+                     // Show error or initial message
+                     <div className="flex h-full items-center justify-center bg-secondary text-muted-foreground p-4 text-center">
+                         {/* Use dangerouslySetInnerHTML to render potential error messages from Mammoth */}
                          <div dangerouslySetInnerHTML={{ __html: previewHtml || 'Select a template to see the preview.' }} />
                      </div>
                    )}
