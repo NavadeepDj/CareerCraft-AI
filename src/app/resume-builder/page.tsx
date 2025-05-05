@@ -16,9 +16,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import LoadingSpinner from '@/components/loading-spinner'; // Updated import
+import LoadingSpinner from '@/components/loading-spinner';
 import { cn } from '@/lib/utils';
 import { useToast } from "@/hooks/use-toast";
+import { saveAs } from 'file-saver'; // For triggering download
+import htmlToDocx from 'html-to-docx'; // For HTML to DOCX conversion
 
 
 // Placeholder for template data
@@ -74,19 +76,19 @@ async function convertDocxToHtml(fileBlob: Blob): Promise<string> {
 }
 
 
-// Placeholder download function
-const downloadFile = (filename: string, content: string, mimeType: string) => {
-  if (typeof window !== 'undefined') {
-    const element = document.createElement('a');
-    const file = new Blob([content], { type: mimeType });
-    element.href = URL.createObjectURL(file);
-    element.download = filename;
-    document.body.appendChild(element); // Required for this to work in FireFox
-    element.click();
-    document.body.removeChild(element);
-    URL.revokeObjectURL(element.href); // Clean up
-  }
-};
+// // Placeholder download function (REPLACED)
+// const downloadFile = (filename: string, content: string, mimeType: string) => {
+//   if (typeof window !== 'undefined') {
+//     const element = document.createElement('a');
+//     const file = new Blob([content], { type: mimeType });
+//     element.href = URL.createObjectURL(file);
+//     element.download = filename;
+//     document.body.appendChild(element); // Required for this to work in FireFox
+//     element.click();
+//     document.body.removeChild(element);
+//     URL.revokeObjectURL(element.href); // Clean up
+//   }
+// };
 
 export default function ResumeBuilderPage() {
     const { toast } = useToast();
@@ -108,12 +110,13 @@ export default function ResumeBuilderPage() {
         academicProjects: `Project using C language\nImplemented denomination in ATM code in C.\n\nProject using Python\nParking management system using Python.\n\nB-EEE\nElectric powered Bicycle.` // Added based on preview
     });
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null); // Start with no template selected
-    const [previewHtml, setPreviewHtml] = useState<string>('');
+    const [previewHtml, setPreviewHtml] = useState<string>(''); // Store the raw injected HTML for download
     const [isLoadingPreview, setIsLoadingPreview] = useState<boolean>(false); // Don't load initially
     const [isClient, setIsClient] = useState(false);
     const [showTemplates, setShowTemplates] = useState(true); // Start by showing templates
 
     // Function to handle injecting data into HTML template string
+    // This now returns only the inner HTML content for the docx conversion
     const injectDataIntoHtml = (html: string, data: typeof resumeData): string => {
         let processedHtml = html;
 
@@ -210,10 +213,8 @@ export default function ResumeBuilderPage() {
          // Clean up any remaining/unmatched list placeholders
         processedHtml = processedHtml.replace(/{{\s*\w+List\s*}}/gi, ''); // Remove {{ fieldNameList }}
 
-
-        // Wrap in a container with prose for basic styling - ensure it fills height and scrolls
-        // Changed background to bg-white and text to text-black for explicit black & white preview content
-        return `<div class="prose prose-sm max-w-none p-6 text-black bg-white h-full overflow-auto">${processedHtml}</div>`;
+        // Return the inner HTML content, without the wrapper div
+        return processedHtml;
     };
 
 
@@ -251,14 +252,15 @@ export default function ResumeBuilderPage() {
             // Check if conversion itself returned an error message
              if (rawHtml.includes("Error loading resume preview")) {
                  // Display the error from conversion directly
-                 setPreviewHtml(rawHtml);
+                 setPreviewHtml(`<div class='p-4 text-center text-red-600'>${rawHtml}</div>`);
              } else if (rawHtml.includes("Preview library (Mammoth.js) is loading")) {
                  // Display the Mammoth loading message
-                 setPreviewHtml(rawHtml);
+                 setPreviewHtml(`<div class='p-4 text-center text-orange-600'>${rawHtml}</div>`);
              } else {
                 // Inject current resumeData into the raw HTML
-                const finalHtml = injectDataIntoHtml(rawHtml, resumeData);
-                setPreviewHtml(finalHtml);
+                const injectedHtmlContent = injectDataIntoHtml(rawHtml, resumeData);
+                 // Store the raw injected content for potential download
+                setPreviewHtml(injectedHtmlContent);
              }
 
         } catch (error) {
@@ -351,40 +353,98 @@ export default function ResumeBuilderPage() {
         setIsLoadingPreview(true); // Show loading indicator immediately
     };
 
-    const handleDownload = (format: 'word' | 'pdf') => {
-        console.log(`Download requested in ${format} format`);
-        toast({
-            title: "Download Started (Placeholder)",
-            description: `Generating ${format.toUpperCase()} file... (Functionality not fully implemented)`,
-        });
-        // Placeholder: Generate content based on resumeData and selected template structure
-        // In a real app, you'd need a server-side service or more complex client-side libs
-        // (like docx or pdf-lib combined with template processing)
-        // to generate actual DOCX/PDF from the data + template structure.
-        // This example just downloads raw text data for demonstration.
-        let fileContent = `Job Title: ${resumeData.jobTitle}\n\n`;
-        fileContent += `Name: ${resumeData.firstName} ${resumeData.lastName}\n`;
-        fileContent += `Email: ${resumeData.email}\n`;
-        fileContent += `Phone: ${resumeData.phone}\n`;
-        fileContent += `Address: ${resumeData.address}\n`;
-        fileContent += `\nProfile Summary:\n${resumeData.profile}\n`;
-        fileContent += `\nSkills: ${resumeData.skills}\n`;
-        fileContent += `\nEducation:\n${resumeData.education}\n`;
-        fileContent += `\nEmployment History:\n${resumeData.employmentHistory || 'N/A'}\n`;
-        fileContent += `\nAcademic Projects:\n${resumeData.academicProjects || 'N/A'}\n`;
-        fileContent += `\nHobbies: ${resumeData.hobbies || 'N/A'}\n`;
-        fileContent += `\nLanguages: ${resumeData.languages || 'N/A'}\n`;
-        fileContent += `\nReferences:\n${resumeData.references || 'Available upon request'}\n`;
+     const handleDownload = async (format: 'word' | 'pdf') => {
+         console.log(`Download requested in ${format} format`);
 
+         if (!previewHtml || previewHtml.startsWith('<div')) {
+             toast({
+                 title: "Preview Not Ready",
+                 description: "Please wait for the preview to load or select a template.",
+                 variant: "destructive",
+             });
+             return;
+         }
 
-        if (format === 'word') {
-            // Basic .txt pretending to be .docx
-            downloadFile(`${resumeData.lastName}_${resumeData.firstName}_Resume.docx`, fileContent, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        } else if (format === 'pdf') {
-             // Basic .txt pretending to be .pdf
-            downloadFile(`${resumeData.lastName}_${resumeData.firstName}_Resume.pdf`, fileContent, 'application/pdf');
-        }
-    };
+         const fileNameBase = `${resumeData.lastName}_${resumeData.firstName}_Resume`.replace(/\s+/g, '_');
+
+         if (format === 'word') {
+             try {
+                 toast({
+                     title: "Generating DOCX...",
+                     description: "This may take a moment.",
+                 });
+                 // Construct the full HTML document structure needed by html-to-docx
+                 // Include basic styles inline or via a <style> tag if needed
+                 // Ensure the main content is wrapped appropriately
+                 const fullHtml = `
+                     <!DOCTYPE html>
+                     <html lang="en">
+                     <head>
+                         <meta charset="UTF-8">
+                         <title>Resume</title>
+                         <style>
+                             /* Add any essential base styles here */
+                             body { font-family: sans-serif; font-size: 11pt; color: #000; }
+                             h1, h2, h3, h4 { margin: 0.5em 0; color: #000; }
+                             p { margin: 0.2em 0; }
+                             ul { margin: 0.5em 0; padding-left: 20px; }
+                             li { margin-bottom: 0.2em; }
+                             .text-muted-foreground { color: #666; } /* Example */
+                             .font-semibold { font-weight: 600; } /* Example */
+                             .text-sm { font-size: 10pt; } /* Example */
+                             .mb-2 { margin-bottom: 0.5rem; }
+                             .mb-4 { margin-bottom: 1rem; }
+                             .mt-1 { margin-top: 0.25rem; }
+                             .pl-5 { padding-left: 1.25rem; } /* Approximation for Tailwind pl-5 */
+                             .list-disc { list-style-type: disc; }
+                             /* Add other minimal styles based on the visual preview */
+                         </style>
+                     </head>
+                     <body>
+                         ${previewHtml} {/* Use the raw injected HTML */}
+                     </body>
+                     </html>
+                 `;
+
+                 const docxBlob = await htmlToDocx(fullHtml, undefined, {
+                     margins: { top: 720, right: 720, bottom: 720, left: 720 }, // Standard 1-inch margins in twentieths of a point
+                 });
+
+                 saveAs(docxBlob, `${fileNameBase}.docx`);
+
+                 toast({
+                     title: "DOCX Download Started",
+                     description: "Your resume has been downloaded.",
+                 });
+
+             } catch (error) {
+                 console.error("Error generating DOCX:", error);
+                 toast({
+                     title: "DOCX Generation Failed",
+                     description: `Could not generate Word file. ${error instanceof Error ? error.message : ''}`,
+                     variant: "destructive",
+                 });
+             }
+         } else if (format === 'pdf') {
+             // PDF generation is more complex client-side.
+             // Requires a library like jsPDF or pdf-lib combined with HTML-to-canvas (like html2canvas).
+             // This is a placeholder for now.
+             toast({
+                 title: "PDF Download (Not Implemented)",
+                 description: "Client-side PDF generation is complex and not fully implemented in this demo. Consider server-side generation.",
+                 variant: "destructive",
+             });
+             // Example using jsPDF (would require installation and more setup):
+             // try {
+             //    const { jsPDF } = await import('jspdf');
+             //    const doc = new jsPDF();
+             //    // You'd likely need html2canvas to render the HTML preview onto the PDF
+             //    // doc.html(previewHtmlContainerElement, { ... });
+             //    doc.text("PDF Generation Placeholder", 10, 10);
+             //    doc.save(`${fileNameBase}.pdf`);
+             // } catch (error) { ... }
+         }
+     };
 
   return (
     <div className="container mx-auto min-h-screen p-4 md:p-6 lg:p-8">
@@ -409,11 +469,11 @@ export default function ResumeBuilderPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleDownload('word')} disabled={!selectedTemplate}>
+                  <DropdownMenuItem onClick={() => handleDownload('word')} disabled={showTemplates || !selectedTemplate}>
                     <FileType className="mr-2 h-4 w-4" />
                     <span>Word (.docx)</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleDownload('pdf')} disabled={!selectedTemplate}>
+                  <DropdownMenuItem onClick={() => handleDownload('pdf')} disabled={showTemplates || !selectedTemplate}>
                     <FileText className="mr-2 h-4 w-4" />
                      <span>PDF (.pdf)</span>
                   </DropdownMenuItem>
@@ -561,19 +621,24 @@ export default function ResumeBuilderPage() {
                      <div className="flex h-full items-center justify-center bg-secondary">
                        <LoadingSpinner /> {/* Use the new spinner */}
                      </div>
-                   ) : previewHtml ? (
+                   ) : previewHtml && !previewHtml.includes("Error loading resume preview") && !previewHtml.includes("Preview library (Mammoth.js) is loading") ? (
                      // The container *inside* which the dangerouslySetInnerHTML is rendered
                      // handles the scrolling and background.
                      <div className="h-full w-full overflow-auto bg-muted p-4"> {/* Changed background to muted (light gray) */}
                          {/* Render the HTML inside a div that mimics a document page */}
                          <div
-                            className="mx-auto max-w-3xl bg-white p-8 shadow-md document-preview" // Kept preview content white
-                            dangerouslySetInnerHTML={{ __html: previewHtml }}
+                             id="resume-preview-content" // Added ID for potential PDF generation
+                             className="mx-auto max-w-3xl bg-white p-8 shadow-md document-preview" // Kept preview content white
+                             // Apply prose styles directly for base formatting
+                             // Use prose-sm for smaller text, max-w-none to fill container
+                             // Use text-black for explicit black text color
+                             dangerouslySetInnerHTML={{ __html: `<div class="prose prose-sm max-w-none text-black">${previewHtml}</div>` }}
                          />
                      </div>
                    ) : (
                      <div className="flex h-full items-center justify-center bg-secondary text-muted-foreground">
-                       Select a template to see the preview.
+                        {/* Display error or initial message */}
+                         <div dangerouslySetInnerHTML={{ __html: previewHtml || 'Select a template to see the preview.' }} />
                      </div>
                    )}
                  </CardContent>
