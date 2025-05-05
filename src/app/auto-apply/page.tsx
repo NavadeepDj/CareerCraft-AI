@@ -565,7 +565,8 @@ export default function AutoApplyPage() {
 
   useEffect(() => {
     setIsClient(true); // Indicate component has mounted client-side
-  }, []);
+    console.log("Google Maps API Key Loaded:", googleMapsApiKey ? "Yes" : "No");
+  }, [googleMapsApiKey]); // Add dependency to re-log if key changes (though unlikely)
 
 
   // State variables for Step 2 (Email Template)
@@ -1233,6 +1234,7 @@ export default function AutoApplyPage() {
                                         autocompletionRequest={{
                                              types: ['(cities)', '(regions)', 'country'], // Suggest cities, regions, countries
                                         }}
+                                        onLoadFailed={(error) => console.error("Could not load Google Places Autocomplete:", error)} // Add error handler
                                      />
                                 ) : (
                                      <Input // Fallback for SSR or if Maps API key is missing
@@ -1247,7 +1249,7 @@ export default function AutoApplyPage() {
                                     Specify city, state, country, or "Remote". Required if not searching only remote.
                                 </p>}
                                 {!isClient && <p className="text-xs text-destructive mt-1">Location autocomplete requires client-side rendering.</p>}
-                                {isClient && !googleMapsApiKey && <p className="text-xs text-destructive mt-1">Google Maps API key is missing. Location autocomplete disabled.</p>}
+                                {isClient && !googleMapsApiKey && <p className="text-xs text-destructive mt-1">Google Maps API key is missing or invalid. Location autocomplete disabled. Check .env.local file.</p>}
                             </div>
                             {/* Checkboxes */}
                              <div className="space-y-3">
@@ -1654,6 +1656,7 @@ export default function AutoApplyPage() {
                                                  autocompletionRequest={{
                                                       types: ['(cities)'], // Suggest only cities
                                                  }}
+                                                 onLoadFailed={(error) => console.error("Could not load Google Places Autocomplete for City:", error)} // Add error handler
                                              />
                                          ) : (
                                              <Input
@@ -1667,7 +1670,7 @@ export default function AutoApplyPage() {
                                              />
                                          )}
                                          {!isClient && <p className="text-xs text-destructive mt-1">Location autocomplete requires client-side rendering.</p>}
-                                         {isClient && !googleMapsApiKey && <p className="text-xs text-destructive mt-1">Google Maps API key is missing. Location autocomplete disabled.</p>}
+                                         {isClient && !googleMapsApiKey && <p className="text-xs text-destructive mt-1">Google Maps API key is missing or invalid. Location autocomplete disabled. Check .env.local file.</p>}
                                      </div>
 
 
