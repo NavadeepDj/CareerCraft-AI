@@ -3,7 +3,6 @@
 
 import React, { useState, useEffect, ChangeEvent, useCallback } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,7 +27,7 @@ interface Template {
     id: string;
     name: string;
     path: string; // Path relative to the public directory
-    thumbnail: string; // URL to the thumbnail image
+    // thumbnail: string; // URL to the thumbnail image - Removed, will use rendered preview
     aiHint: string; // Hint for image generation/replacement
 }
 
@@ -38,21 +37,21 @@ const templates: Template[] = [
     id: 'stylish_sales',
     name: 'Stylish Sales',
     path: '/templates/Stylish_sales_resume.docx',
-    thumbnail: 'https://picsum.photos/seed/stylish_sales/300/400',
+    // thumbnail: 'https://picsum.photos/seed/stylish_sales/300/400',
     aiHint: 'stylish modern resume sales professional',
   },
   {
     id: 'modern_professional',
     name: 'Modern Professional',
     path: '/templates/Modern_professional_resume.docx',
-    thumbnail: 'https://picsum.photos/seed/modern_prof/300/400',
+    // thumbnail: 'https://picsum.photos/seed/modern_prof/300/400',
     aiHint: 'modern professional resume clean design',
   },
   {
     id: 'classic_monochrome',
     name: 'Classic Monochrome',
     path: '/templates/Classic_monochrome_resume.docx',
-    thumbnail: 'https://picsum.photos/seed/classic_mono/300/400',
+    // thumbnail: 'https://picsum.photos/seed/classic_mono/300/400',
     aiHint: 'classic monochrome resume traditional layout',
   },
   // Add more templates here if needed, ensuring the .docx files exist in public/templates
@@ -78,6 +77,27 @@ export type ResumeData = {
   [key: string]: string; // Allow other string properties if needed
 };
 
+// Function to fetch and convert DOCX to HTML using Mammoth.js
+async function convertDocxToHtml(url: string): Promise<string> {
+  if (typeof window === 'undefined' || !(window as any).mammoth) {
+    throw new Error("Mammoth.js not loaded");
+  }
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch template: ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    const mammoth = (window as any).mammoth;
+    const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+    return result.value; // Return raw HTML
+  } catch (error) {
+    console.error(`Error converting DOCX at ${url}:`, error);
+    return `<div class='p-4 text-center text-destructive'>Error loading preview</div>`; // Return error HTML
+  }
+}
+
+
 export default function ResumeBuilderPage() {
     const { toast } = useToast();
     // Initial state matching the screenshot's example data
@@ -101,10 +121,70 @@ export default function ResumeBuilderPage() {
     const [isLoading, setIsLoading] = useState<boolean>(false); // General loading state for downloads
     const [isClient, setIsClient] = useState(false);
     const [showTemplates, setShowTemplates] = useState(true); // Start by showing templates
+    const [templatePreviews, setTemplatePreviews] = useState<Record<string, string>>({}); // Store HTML previews { [templateId]: htmlString }
+    const [previewsLoading, setPreviewsLoading] = useState(true); // State for preview loading
 
+
+     // Load Mammoth.js script and generate previews
      useEffect(() => {
-        setIsClient(true); // Indicate component has mounted client-side
-     }, []);
+        setIsClient(true);
+        let mammothLoaded = false;
+
+        const loadMammothScript = () => {
+            if (typeof window !== 'undefined' && !(window as any).mammoth) {
+                const scriptId = 'mammoth-script';
+                if (document.getElementById(scriptId)) return; // Already added
+
+                console.log("Loading Mammoth.js script...");
+                const script = document.createElement('script');
+                script.id = scriptId;
+                script.src = 'https://unpkg.com/mammoth/mammoth.browser.min.js';
+                script.async = true;
+                script.onload = () => {
+                    console.log("Mammoth.js loaded.");
+                    mammothLoaded = true;
+                    generatePreviews(); // Generate previews once loaded
+                };
+                script.onerror = () => {
+                     console.error("Failed to load Mammoth.js");
+                     setPreviewsLoading(false); // Stop loading if script fails
+                     // Optionally set an error state for previews
+                };
+                document.body.appendChild(script);
+            } else if ((window as any).mammoth) {
+                console.log("Mammoth.js already loaded.");
+                mammothLoaded = true;
+                generatePreviews(); // Generate previews if already loaded
+            }
+        };
+
+        const generatePreviews = async () => {
+            if (!mammothLoaded) {
+                console.log("Mammoth not ready, waiting...");
+                return;
+            }
+            setPreviewsLoading(true);
+            console.log("Generating template previews...");
+            const previews: Record<string, string> = {};
+            try {
+                 for (const template of templates) {
+                    console.log(`Fetching and converting: ${template.path}`);
+                    previews[template.id] = await convertDocxToHtml(template.path);
+                 }
+                 setTemplatePreviews(previews);
+                 console.log("Previews generated.");
+            } catch (error) {
+                 console.error("Error generating previews:", error);
+                 // Handle error state if needed
+            } finally {
+                 setPreviewsLoading(false);
+            }
+        };
+
+        loadMammothScript();
+
+    }, []); // Run only once on mount
+
 
     // Handles input changes in the form fields
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -227,32 +307,37 @@ export default function ResumeBuilderPage() {
          // Template Selection View
         <div>
             <h2 className="mb-6 text-center text-xl font-semibold">Choose a Resume Template</h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {templates.map((template) => (
-                    <Card
-                        key={template.id}
-                        className="cursor-pointer overflow-hidden shadow-md transition-all hover:shadow-lg hover:scale-105"
-                        onClick={() => handleTemplateSelect(template.id)}
-                        aria-label={`Select ${template.name} template`}
-                    >
-                        <CardContent className="p-0">
-                            <Image
-                                src={template.thumbnail}
-                                alt={`${template.name} thumbnail`}
-                                width={300}
-                                height={400}
-                                className="w-full object-cover aspect-[3/4] bg-secondary" // Added bg-secondary as placeholder background
-                                data-ai-hint={template.aiHint} // Use specific hint
-                                priority // Load thumbnails faster
-                                unoptimized // Avoid Next.js image optimization for external URLs like picsum
-                            />
-                             <div className="p-4 border-t">
-                                <p className="text-center font-medium">{template.name}</p>
+             {previewsLoading ? (
+                 <div className="flex justify-center items-center min-h-[50vh]">
+                    <LoadingSpinner />
+                    <p className="ml-4 text-muted-foreground">Loading template previews...</p>
+                 </div>
+             ) : (
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"> {/* Adjusted columns */}
+                    {templates.map((template) => (
+                        <Card
+                            key={template.id}
+                            className="cursor-pointer overflow-hidden shadow-md transition-all hover:shadow-lg hover:scale-[1.02]" // Slightly smaller scale on hover
+                            onClick={() => handleTemplateSelect(template.id)}
+                            aria-label={`Select ${template.name} template`}
+                        >
+                             {/* Preview Area */}
+                            <div
+                                className="h-[400px] w-full overflow-hidden border-b bg-secondary p-2 flex justify-center items-start" // Center content, add padding
+                                data-ai-hint={template.aiHint}
+                            >
+                                <div
+                                    className="prose prose-sm max-w-none scale-[0.4] origin-top-left bg-white p-4 shadow-md" // Scale down for preview
+                                    dangerouslySetInnerHTML={{ __html: templatePreviews[template.id] || '<p>Loading preview...</p>' }}
+                                />
                             </div>
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
+                             <CardContent className="p-4">
+                                <p className="text-center font-medium">{template.name}</p>
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
         </div>
       ) : (
          // Editor and Preview View
