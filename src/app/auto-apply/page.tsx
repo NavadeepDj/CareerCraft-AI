@@ -27,7 +27,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Switch } from "@/components/ui/switch"; // Import Switch
 import { Slider } from "@/components/ui/slider"; // Import Slider
 import { Separator } from '@/components/ui/separator'; // Import Separator
-
+import GooglePlacesAutocomplete, { geocodeByAddress, getLatLng } from 'react-google-places-autocomplete';
 
 interface AppliedJob {
   id: string;
@@ -493,6 +493,7 @@ const StatisticsDashboard: React.FC<{ onConfigure: () => void }> = ({ onConfigur
     { title: 'Active Loops', value: 0, icon: RefreshCcw },
     { title: 'Total Matches Found', value: 0, icon: Share2 },
     { title: 'Applications Sent (Sim)', value: 0, icon: FileCheck },
+    { title: 'Emails Sent (Sim)', value: 0, icon: Mail }, // Added Emails Sent stat
     { title: 'Errors Encountered (Sim)', value: 0, icon: AlertTriangle },
   ];
 
@@ -507,7 +508,7 @@ const StatisticsDashboard: React.FC<{ onConfigure: () => void }> = ({ onConfigur
             </CardDescription>
         </CardHeader>
         <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center"> {/* Adjusted grid columns */}
                 {stats.map((stat, index) => (
                 <div key={index} className="flex flex-col items-center p-4 bg-secondary rounded-lg">
                     <stat.icon className="h-8 w-8 text-muted-foreground mb-2" />
@@ -554,13 +555,19 @@ export default function AutoApplyPage() {
 
   // State variables for Step 1 (Search Info)
   const [jobTitles, setJobTitles] = useState<string>('');
-  const [jobLocation, setJobLocation] = useState<string>('');
+  const [jobLocation, setJobLocation] = useState<any>(null); // Use `any` or create a type for the Place object
   const [searchOnlyRemote, setSearchOnlyRemote] = useState<boolean>(false);
   const [searchRemoteAnywhere, setSearchRemoteAnywhere] = useState<boolean>(false);
   const [searchJobBoards, setSearchJobBoards] = useState<string>('All'); // Default to 'All'
   const [enableCareerPageSearch, setEnableCareerPageSearch] = useState<boolean>(false);
   const [experienceLevel, setExperienceLevel] = useState<string>('');
   const [jobType, setJobType] = useState<string>('');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true); // Indicate component has mounted client-side
+  }, []);
+
 
   // State variables for Step 2 (Email Template)
   const [allTemplates, setAllTemplates] = useState<EmailTemplate[]>([...popularTemplates, ...myTemplates]);
@@ -579,7 +586,7 @@ export default function AutoApplyPage() {
   const [aiAnswering, setAiAnswering] = useState<boolean>(false);
   const [phoneCountryCode, setPhoneCountryCode] = useState<string>('+91'); // Default to India
   const [phoneNumber, setPhoneNumber] = useState<string>(''); // Example '06 12 34 56 70'
-  const [cityLocation, setCityLocation] = useState<string>('');
+  const [cityLocation, setCityLocation] = useState<any>(null); // Use `any` or create a type
   const [coverLetterContent, setCoverLetterContent] = useState<string>(
     `The role is very appealing to me, and I believe that my experience and education make me a highly competitive candidate for this position.\nPlease see my resume for additional information on my experience.\n\nThank you for your time and consideration.\nI look forward to speaking with you about this employment opportunity.`
   ); // Default from image
@@ -664,11 +671,26 @@ export default function AutoApplyPage() {
   // Step 1
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => handleFileChange(e.target.files?.[0] || null);
   const onJobTitlesChange = (e: ChangeEvent<HTMLInputElement>) => setJobTitles(e.target.value);
-  const onJobLocationChange = (e: ChangeEvent<HTMLInputElement>) => setJobLocation(e.target.value);
+  const onJobLocationChange = (newValue: any) => {
+     console.log("Job Location Selected:", newValue);
+     setJobLocation(newValue);
+     // Optionally geocode here if needed immediately
+     // if (newValue) {
+     //     geocodeByAddress(newValue.label)
+     //         .then(results => getLatLng(results[0]))
+     //         .then(({ lat, lng }) => console.log('Successfully got latitude and longitude', { lat, lng }))
+     //         .catch(error => console.error('Error geocoding:', error));
+     // }
+  };
   const onSearchJobBoardsChange = (value: string) => setSearchJobBoards(value);
   const onExperienceLevelChange = (value: string) => setExperienceLevel(value);
   const onJobTypeChange = (value: string) => setJobType(value);
-  const onSearchOnlyRemoteChange = (checked: boolean | 'indeterminate') => setSearchOnlyRemote(Boolean(checked));
+  const onSearchOnlyRemoteChange = (checked: boolean | 'indeterminate') => {
+      setSearchOnlyRemote(Boolean(checked));
+      if (Boolean(checked)) {
+          setJobLocation(null); // Clear job location if only remote is selected
+      }
+  };
   const onSearchRemoteAnywhereChange = (checked: boolean | 'indeterminate') => setSearchRemoteAnywhere(Boolean(checked));
   const onEnableCareerPageSearchChange = (checked: boolean | 'indeterminate') => setEnableCareerPageSearch(Boolean(checked));
 
@@ -697,6 +719,7 @@ export default function AutoApplyPage() {
         title: "Invalid Salary Range",
         description: "Minimum salary cannot be greater than maximum salary.",
         variant: "destructive",
+        duration: 3000, // Show toast for 3 seconds
       });
       return false; // Indicate validation failure
     }
@@ -733,7 +756,11 @@ export default function AutoApplyPage() {
   const onAiAnsweringChange = (checked: boolean) => setAiAnswering(checked);
   const onPhoneCountryCodeChange = (value: string) => setPhoneCountryCode(value);
   const onPhoneNumberChange = (e: ChangeEvent<HTMLInputElement>) => setPhoneNumber(e.target.value);
-  const onCityLocationChange = (e: ChangeEvent<HTMLInputElement>) => setCityLocation(e.target.value);
+  const onCityLocationChange = (newValue: any) => {
+     console.log("City Location Selected:", newValue);
+     setCityLocation(newValue);
+     // Optionally geocode here as well
+  };
   const onCoverLetterContentChange = (e: ChangeEvent<HTMLTextAreaElement>) => setCoverLetterContent(e.target.value);
   const onDesiredSalaryCurrencyChange = (value: string) => setDesiredSalaryCurrency(value);
   // Updated handler for the 3-step slider
@@ -860,7 +887,7 @@ export default function AutoApplyPage() {
       toast({ title: "Missing Job Titles", description: "Please specify the desired job titles.", variant: "destructive" });
       return;
     }
-    if (!jobLocation.trim() && !searchOnlyRemote) {
+    if (!jobLocation && !searchOnlyRemote) { // Check if jobLocation object is null or undefined
        setConfigureStep('searchInfo');
        toast({ title: "Missing Job Location", description: "Please specify a location or select 'Search only for remote jobs'.", variant: "destructive" });
        return;
@@ -893,7 +920,7 @@ export default function AutoApplyPage() {
          return;
      }
      // Step 3 Validation
-     if (!phoneNumber.trim() || !cityLocation.trim()) {
+     if (!phoneNumber.trim() || !cityLocation) { // Check if cityLocation object is null/undefined
          setConfigureStep('settings');
          toast({ title: "Missing Required Fields", description: "Please provide your Phone number and City in the Settings tab.", variant: "destructive" });
          return;
@@ -912,17 +939,17 @@ export default function AutoApplyPage() {
 
     try {
       // **SIMULATION:** In a real app, this would involve complex backend processes.
-      console.log(`Simulating job search loop for: ${jobTitles} in ${jobLocation || 'Remote'}...`);
+      console.log(`Simulating job search loop for: ${jobTitles} in ${jobLocation?.label || 'Remote'}...`);
       console.log("Configuration:", {
           // Step 1
-          jobTitles, jobLocation, searchOnlyRemote, searchRemoteAnywhere,
+          jobTitles, jobLocation: jobLocation?.label, searchOnlyRemote, searchRemoteAnywhere,
           searchJobBoards, enableCareerPageSearch, experienceLevel, jobType,
           resume: uploadedFile?.name,
           // Step 2
           emailTemplate: { name: selectedTemplate.name, subject: selectedTemplate.subject },
           // Step 3
           masterAutoApply, autoSendEmails, autoFillForms, aiAnswering,
-          phone: `${phoneCountryCode} ${phoneNumber}`, cityLocation,
+          phone: `${phoneCountryCode} ${phoneNumber}`, cityLocation: cityLocation?.label,
           coverLetterPreview: coverLetterContent.substring(0, 50) + '...',
           salaryRange: `${minSalary} - ${maxSalary} ${desiredSalaryCurrency}`,
           excludedCompanies: excludedCompanies.join(', '),
@@ -936,7 +963,7 @@ export default function AutoApplyPage() {
       await new Promise(resolve => setTimeout(resolve, 3000));
 
       // Generate dummy results based somewhat on inputs
-      const baseLocation = searchOnlyRemote ? 'Remote' : jobLocation;
+      const baseLocation = searchOnlyRemote ? 'Remote' : (jobLocation?.label || 'Unknown Location');
       const dummyJobs: AppliedJob[] = [
         { id: 'job1', title: `${jobTitles.split(',')[0].trim()} (${experienceLevel})`, company: 'SimuTech', location: baseLocation, status: 'Applied', appliedDate: new Date().toLocaleDateString() },
         { id: 'job2', title: 'Related Role', company: 'DemoCorp', location: baseLocation, status: 'Applied', appliedDate: new Date().toLocaleDateString() },
@@ -970,7 +997,7 @@ export default function AutoApplyPage() {
     // Validate current step before moving to next
     if (configureStep === 'searchInfo') {
         if (!jobTitles.trim()) { toast({ title: "Missing Job Titles", variant: "destructive" }); return; }
-        if (!jobLocation.trim() && !searchOnlyRemote) { toast({ title: "Missing Job Location", variant: "destructive" }); return; }
+        if (!jobLocation && !searchOnlyRemote) { toast({ title: "Missing Job Location", variant: "destructive" }); return; }
         if (!uploadedFile) { toast({ title: "Missing Resume", variant: "destructive" }); return; }
         if (!experienceLevel) { toast({ title: "Missing Experience Level", variant: "destructive" }); return; }
         if (!jobType) { toast({ title: "Missing Job Type", variant: "destructive" }); return; }
@@ -991,7 +1018,7 @@ export default function AutoApplyPage() {
          setConfigureStep('settings');
     } else if (configureStep === 'settings') {
         // Validate Settings Step
-         if (!phoneNumber.trim() || !cityLocation.trim()) {
+         if (!phoneNumber.trim() || !cityLocation) { // Check cityLocation object
              toast({ title: "Missing Required Fields", description: "Please provide your Phone number and City.", variant: "destructive" });
              return;
          }
@@ -1085,6 +1112,58 @@ export default function AutoApplyPage() {
     return "Any salary";
   };
 
+  // Styles for Google Places Autocomplete
+  const autocompleteStyles = {
+      input: (provided: any) => ({
+        ...provided,
+        height: '2.5rem', // Match ShadCN input height (h-10)
+        padding: '0.5rem 0.75rem',
+        fontSize: '0.875rem', // text-sm
+        borderRadius: '0.375rem', // rounded-md
+        borderColor: 'hsl(var(--input))', // Match ShadCN input border
+        backgroundColor: 'hsl(var(--background))',
+        color: 'hsl(var(--foreground))',
+        '::placeholder': {
+          color: 'hsl(var(--muted-foreground))',
+        },
+        ':focus': {
+          borderColor: 'hsl(var(--ring))',
+          boxShadow: '0 0 0 2px hsl(var(--ring))',
+          outline: 'none',
+        }
+      }),
+      option: (provided: any, state: { isFocused: boolean }) => ({
+        ...provided,
+        backgroundColor: state.isFocused ? 'hsl(var(--secondary))' : 'hsl(var(--popover))',
+        color: 'hsl(var(--popover-foreground))',
+        fontSize: '0.875rem',
+        padding: '0.5rem 0.75rem',
+      }),
+       singleValue: (provided: any) => ({
+         ...provided,
+         color: 'hsl(var(--foreground))',
+       }),
+      // Add other parts as needed (e.g., menu, dropdownIndicator)
+       dropdownIndicator: (provided: any) => ({
+         ...provided,
+         color: 'hsl(var(--muted-foreground))',
+         ':hover': {
+           color: 'hsl(var(--foreground))',
+         }
+       }),
+       container: (provided: any) => ({
+            ...provided,
+            width: '100%', // Ensure container takes full width
+       }),
+       menu: (provided: any) => ({
+           ...provided,
+           zIndex: 50, // Ensure dropdown is above other elements
+           backgroundColor: 'hsl(var(--popover))',
+           borderRadius: '0.375rem',
+           border: '1px solid hsl(var(--border))',
+           marginTop: '0.25rem',
+       }),
+  };
 
 
   const renderContent = () => {
@@ -1140,17 +1219,36 @@ export default function AutoApplyPage() {
                              {/* Job Location */}
                             <div className="space-y-2">
                                 <Label htmlFor="jobLocation">Job Location</Label>
-                                <Input
-                                    id="jobLocation"
-                                    value={jobLocation}
-                                    onChange={onJobLocationChange}
-                                    placeholder="e.g., Remote, New York, London"
-                                    disabled={searchOnlyRemote} // Disable if only remote is checked
-                                    required={!searchOnlyRemote} // Require if not searching only remote
-                                />
+                                {isClient ? ( // Render Autocomplete only on client
+                                     <GooglePlacesAutocomplete
+                                        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} // Ensure this is set in your .env.local
+                                        selectProps={{
+                                            value: jobLocation,
+                                            onChange: onJobLocationChange,
+                                            placeholder: 'e.g., Remote, New York, London',
+                                            isDisabled: searchOnlyRemote,
+                                            isClearable: true,
+                                            styles: autocompleteStyles,
+                                             inputId: "jobLocation", // For label association
+                                        }}
+                                        autocompletionRequest={{
+                                             types: ['(cities)', '(regions)', 'country'], // Suggest cities, regions, countries
+                                        }}
+                                     />
+                                ) : (
+                                     <Input // Fallback for SSR or if Maps API key is missing
+                                         id="jobLocation"
+                                         value={jobLocation?.label || ''} // Display label if object exists
+                                         onChange={(e) => onJobLocationChange({ label: e.target.value, value: { description: e.target.value } })} // Basic text input simulation
+                                         placeholder="e.g., Remote, New York, London"
+                                         disabled={searchOnlyRemote || !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY} // Disable if API key missing
+                                     />
+                                )}
                                 {!searchOnlyRemote && <p className="text-xs text-muted-foreground">
                                     Specify city, state, country, or "Remote". Required if not searching only remote.
                                 </p>}
+                                {!isClient && <p className="text-xs text-destructive mt-1">Location autocomplete requires client-side rendering.</p>}
+                                {isClient && !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && <p className="text-xs text-destructive mt-1">Google Maps API key is missing. Location autocomplete disabled.</p>}
                             </div>
                             {/* Checkboxes */}
                              <div className="space-y-3">
@@ -1542,16 +1640,36 @@ export default function AutoApplyPage() {
 
 
                                      {/* City */}
-                                    <div className="space-y-1">
+                                     <div className="space-y-1">
                                          <Label htmlFor="cityLocation">City <span className="text-destructive">*</span></Label>
-                                         <Input
-                                             id="cityLocation"
-                                             value={cityLocation}
-                                             onChange={onCityLocationChange}
-                                             placeholder="Location that you are based in"
-                                             required
-                                             className="h-9 text-xs"
-                                         />
+                                          {isClient ? (
+                                              <GooglePlacesAutocomplete
+                                                 apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                                                 selectProps={{
+                                                      value: cityLocation,
+                                                      onChange: onCityLocationChange,
+                                                      placeholder: 'Location that you are based in',
+                                                      isClearable: true,
+                                                      styles: autocompleteStyles,
+                                                      inputId: "cityLocation",
+                                                 }}
+                                                 autocompletionRequest={{
+                                                      types: ['(cities)'], // Suggest only cities
+                                                 }}
+                                             />
+                                         ) : (
+                                             <Input
+                                                 id="cityLocation"
+                                                 value={cityLocation?.label || ''}
+                                                 onChange={(e) => onCityLocationChange({ label: e.target.value, value: { description: e.target.value } })}
+                                                 placeholder="Location that you are based in"
+                                                 required
+                                                 className="h-9 text-xs"
+                                                 disabled={!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                                             />
+                                         )}
+                                         {!isClient && <p className="text-xs text-destructive mt-1">Location autocomplete requires client-side rendering.</p>}
+                                         {isClient && !process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY && <p className="text-xs text-destructive mt-1">Google Maps API key is missing. Location autocomplete disabled.</p>}
                                      </div>
 
 
@@ -1778,7 +1896,7 @@ export default function AutoApplyPage() {
                               {/* Search Info Section */}
                              <div className="space-y-4">
                                  <h4 className="font-semibold text-md text-muted-foreground mb-2">Search Info</h4>
-                                 <ReviewDetail icon={MapPin} label="Job Location" value={searchOnlyRemote ? (searchRemoteAnywhere ? "Remote Anywhere" : "Remote") : jobLocation} />
+                                 <ReviewDetail icon={MapPin} label="Job Location" value={searchOnlyRemote ? (searchRemoteAnywhere ? "Remote Anywhere" : "Remote") : (jobLocation?.label || 'N/A')} />
                                  <ReviewDetail icon={Search} label="Job Board Platform" value={searchJobBoards} />
                                  <ReviewDetail icon={Briefcase} label="Experience" value={experienceLevel} />
                                  <ReviewDetail icon={Clock} label="Job Type" value={jobType} />
