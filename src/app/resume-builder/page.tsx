@@ -27,7 +27,6 @@ interface Template {
     id: string;
     name: string;
     path: string; // Path relative to the public directory
-    // thumbnail: string; // URL to the thumbnail image - Removed, will use rendered preview
     aiHint: string; // Hint for image generation/replacement
 }
 
@@ -335,18 +334,18 @@ export default function ResumeBuilderPage() {
                             onClick={() => handleTemplateSelect(template.id)}
                             aria-label={`Select ${template.name} template`}
                         >
-                             {/* Preview Area */}
+                             {/* Preview Area - Adjusted styling */}
                             <div
-                                className="h-[400px] w-full overflow-hidden border-b bg-secondary p-2 flex justify-center items-start" // Center content, add padding
+                                className="h-[350px] w-full overflow-hidden border-b bg-secondary p-1 flex justify-center items-start" // Reduced height, padding
                                 data-ai-hint={template.aiHint}
                             >
                                 <div
-                                    className="prose prose-sm max-w-none scale-[0.4] origin-top-left bg-white p-4 shadow-md" // Scale down for preview
+                                    className="document-preview w-[210mm] min-h-[297mm] scale-[0.35] origin-top bg-white p-4 shadow-md" // Reduced scale further, origin-top
                                     dangerouslySetInnerHTML={{ __html: templatePreviews[template.id] || '<p>Loading preview...</p>' }}
                                 />
                             </div>
-                             <CardContent className="p-4">
-                                <p className="text-center font-medium">{template.name}</p>
+                             <CardContent className="p-3"> {/* Reduced padding */}
+                                <p className="text-center font-medium text-sm">{template.name}</p> {/* Slightly smaller text */}
                             </CardContent>
                         </Card>
                     ))}
